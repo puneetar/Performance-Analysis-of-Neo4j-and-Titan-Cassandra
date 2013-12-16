@@ -32,6 +32,8 @@ import org.neo4j.unsafe.batchinsert.BatchInserterImpl;
 import org.neo4j.unsafe.batchinsert.BatchInserterIndex;
 import org.neo4j.unsafe.batchinsert.BatchInserters;
 
+import com.tinkerpop.blueprints.TransactionalGraph;
+
 public class EmbeddedNeo4j {
 
 	//private static final String DB_PATH = "test.db";
@@ -82,26 +84,43 @@ public class EmbeddedNeo4j {
         .newHighlyAvailableDatabaseBuilder(DB_PATH)
         .setConfig(haConfig).
         setConfig( GraphDatabaseSettings.node_keys_indexable, "id" ).
-        setConfig( GraphDatabaseSettings.node_auto_indexing, "true" ).
+        setConfig( GraphDatabaseSettings.node_auto_indexing, "true" ).		
         newGraphDatabase();
 		registerShutdownHook( graphDb );
 		
+//		
+//		
+//		nodeAutoIndex =graphDb.index().getNodeAutoIndexer().getAutoIndex();
+	//	 TransactionalGraph graph = new Neo4jHaGraph("/path/to/ha_db_dir", haConfig);
 		
-		
-		nodeAutoIndex =graphDb.index().getNodeAutoIndexer().getAutoIndex();
-		
-//		try {
-//			//addNodes();
-//			//addNodesBatchInsert();
-//		} catch (ConstraintViolationException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IOException e) {
+		try {
+			//addNodes();
+			//addNodesBatchInsert();
+			//addBatch();
+		} catch (ConstraintViolationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+	
+		} 
+//		catch (IOException e) {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 //		
 		
+	}
+	private void addBatch(){
+		GraphDatabaseService batchDb =
+		        BatchInserters.batchDatabase( DB_PATH, haConfig );
+		Label personLabel = DynamicLabel.label( "Person" );
+		Node mattiasNode = batchDb.createNode( personLabel );
+		mattiasNode.setProperty( "name", "Mattias" );
+		Node chrisNode = batchDb.createNode();
+		chrisNode.setProperty( "name", "Chris" );
+		chrisNode.addLabel( personLabel );
+		RelationshipType knows = DynamicRelationshipType.withName( "KNOWS" );
+		mattiasNode.createRelationshipTo( chrisNode, knows );
+		batchDb.shutdown();
 	}
 
 	private void addNodesBatchInsert() throws ConstraintViolationException, IOException{
