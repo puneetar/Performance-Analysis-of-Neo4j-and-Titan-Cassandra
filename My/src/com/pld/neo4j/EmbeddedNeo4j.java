@@ -18,6 +18,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.graphdb.factory.HighlyAvailableGraphDatabaseFactory;
+import org.neo4j.graphdb.index.ReadableIndex;
 import org.neo4j.kernel.impl.util.FileUtils;
 
 public class EmbeddedNeo4j {
@@ -42,15 +43,12 @@ public class EmbeddedNeo4j {
 	public static void main( String[] args )
 	{
 		EmbeddedNeo4j hello = new EmbeddedNeo4j();
-		String storeDir="mydata";
-		String pathToConfig="./";
-		hello.createDb(storeDir,pathToConfig);
+		hello.createDb();
 		// hello.removeData();
 		// hello.shutDown();
 	}
 
-	
-	void createDb(String storeDir, String pathToConfig)
+	void createDb()
 	{
 		clearDb();
 		for(int i=0;i<1000;i++){
@@ -59,25 +57,19 @@ public class EmbeddedNeo4j {
 
 		HashMap<String, String> haConfig = new HashMap<String, String>();
 
-		haConfig.put("ha.server_id", "4");
+
+		haConfig.put("ha.server_id", "7");
 		haConfig.put("ha.initial_hosts", "192.168.0.199:5001,192.168.0.198:5001,192.168.0.197:5001,192.168.0.199:5002");
 		haConfig.put("ha.server", "192.168.0.199:6002");
 		haConfig.put("ha.cluster_server", "192.168.0.199:5002");
 		haConfig.put("org.neo4j.server.database.mode", "HA");
 
-		graphDb = new GraphDatabaseFactory()
-		.newEmbeddedDatabaseBuilder("test.db")
-		.setConfig(haConfig)
-		.setConfig(GraphDatabaseSettings.node_auto_indexing,"true")
-		.setConfig(GraphDatabaseSettings.node_keys_indexable,"id")
-		.newGraphDatabase();
-		//	        System.out.println(pathToConfig);
-		//	        graphDb = new GraphDatabaseFactory()
-		//	        .newEmbeddedDatabaseBuilder( storeDir )
-		//	        .loadPropertiesFromFile( pathToConfig + "neo4j.properties" )
-		//	        .newGraphDatabase();
-		// START SNIPPET: startDb
-		//graphDb = new GraphDatabaseFactory().newEmbeddedDatabase( DB_PATH );
+		graphDb = new HighlyAvailableGraphDatabaseFactory()
+        .newHighlyAvailableDatabaseBuilder("test.db")
+        .setConfig(haConfig).
+        setConfig( GraphDatabaseSettings.node_keys_indexable, "id" ).
+        setConfig( GraphDatabaseSettings.node_auto_indexing, "true" ).
+        newGraphDatabase();
 		registerShutdownHook( graphDb );
 		// END SNIPPET: startDb
 
