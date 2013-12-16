@@ -28,13 +28,14 @@ import org.neo4j.graphdb.index.ReadableIndex;
 import org.neo4j.kernel.DefaultFileSystemAbstraction;
 import org.neo4j.kernel.impl.util.FileUtils;
 import org.neo4j.unsafe.batchinsert.BatchInserter;
+import org.neo4j.unsafe.batchinsert.BatchInserterImpl;
 import org.neo4j.unsafe.batchinsert.BatchInserterIndex;
 import org.neo4j.unsafe.batchinsert.BatchInserters;
 
 public class EmbeddedNeo4j {
 
 	//private static final String DB_PATH = "test.db";
-	private static final String DB_PATH="wikipedia_link_fr.csv";
+	private static final String DB_PATH="test.db";
 
 	public String greeting;
 	private String[] arr_prop=new String[1000];
@@ -89,14 +90,17 @@ public class EmbeddedNeo4j {
 		
 		nodeAutoIndex =graphDb.index().getNodeAutoIndexer().getAutoIndex();
 		
-		try {
-			addNodes();
-			//addNodesBatchInsert();
-		} catch (ConstraintViolationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+//		try {
+//			//addNodes();
+//			//addNodesBatchInsert();
+//		} catch (ConstraintViolationException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
 		
 	}
 
@@ -109,7 +113,7 @@ public class EmbeddedNeo4j {
 		String line=null;
 		
 		Label userLabel = DynamicLabel.label( "Users" );
-		inserter = BatchInserters.inserter( DB_PATH, new DefaultFileSystemAbstraction(), haConfig);
+		inserter = (BatchInserterImpl)BatchInserters.inserter( DB_PATH);
 		inserter.createDeferredSchemaIndex( userLabel ).on( "ID" ).create();
 		
 		
@@ -118,11 +122,11 @@ public class EmbeddedNeo4j {
 		while((line=br.readLine())!=null)
 		{
 			//arr_token=line.split(" ");
-				
+				System.out.println(line);
 				
 				//Map<String, Object> properties = new HashMap<>();
 				properties.clear();
-				properties.put( "ID", "arr_token[1]" );
+				properties.put( "ID", line );
 				properties.put("property1", arr_prop[new Random().nextInt(1000)] );
 				long mattiasNode = inserter.createNode( properties, userLabel );
 				
