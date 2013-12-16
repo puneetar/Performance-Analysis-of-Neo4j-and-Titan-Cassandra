@@ -24,11 +24,11 @@ import org.neo4j.kernel.impl.util.FileUtils;
 
 public class EmbeddedNeo4j {
 
-	private static final String DB_PATH = "data";
+	private static final String DB_PATH = "test.db";
 
 	public String greeting;
 	private String[] arr_prop=new String[1000];
-	private String PATH_CSV_FILE="";
+	private String PATH_CSV_FILE="wikipedia_link_fr.csv";
 	// START SNIPPET: vars
 	GraphDatabaseService graphDb;
 	Node firstNode;
@@ -66,7 +66,7 @@ public class EmbeddedNeo4j {
 		haConfig.put("org.neo4j.server.database.mode", "HA");
 
 		graphDb = new HighlyAvailableGraphDatabaseFactory()
-        .newHighlyAvailableDatabaseBuilder("test.db")
+        .newHighlyAvailableDatabaseBuilder(DB_PATH)
         .setConfig(haConfig).
         setConfig( GraphDatabaseSettings.node_keys_indexable, "id" ).
         setConfig( GraphDatabaseSettings.node_auto_indexing, "true" ).
