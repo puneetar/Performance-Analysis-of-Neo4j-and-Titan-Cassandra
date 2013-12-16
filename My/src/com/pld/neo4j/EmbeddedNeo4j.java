@@ -1,9 +1,13 @@
 package com.pld.neo4j;
 
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Scanner;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -21,7 +25,8 @@ public class EmbeddedNeo4j {
 	private static final String DB_PATH = "data";
 
 	public String greeting;
-
+	private String[] arr_prop=new String[1000];
+	private String PATH_CSV_FILE="";
 	// START SNIPPET: vars
 	GraphDatabaseService graphDb;
 	Node firstNode;
@@ -44,9 +49,13 @@ public class EmbeddedNeo4j {
 		// hello.shutDown();
 	}
 
+	
 	void createDb(String storeDir, String pathToConfig)
 	{
 		clearDb();
+		for(int i=0;i<1000;i++){
+			arr_prop[i]="np"+i;
+		}
 
 		HashMap<String, String> haConfig = new HashMap<String, String>();
 
@@ -73,21 +82,32 @@ public class EmbeddedNeo4j {
 		// END SNIPPET: startDb
 
 		// START SNIPPET: transaction
-
-		addNodes();
+		
+		try {
+			
+			FileReader fr=new FileReader(PATH_CSV_FILE);
+			BufferedReader br=new BufferedReader(fr,1024000);
+			
+			//HashSet<String>
+			
+			addNodes();
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 		// END SNIPPET: transaction
 	}
 
 	private void addNodes(){
 		try ( Transaction tx = graphDb.beginTx() )
 		{
-			// Database operations go here
-			// END SNIPPET: transaction
-			// START SNIPPET: addData
+			
 			firstNode = graphDb.createNode();
-			firstNode.setProperty( "message", "Hello, " );
-			secondNode = graphDb.createNode();
-			secondNode.setProperty( "message", "World!" );
+			firstNode.setProperty( "ID", "Hello, " );
+			firstNode.setProperty( "property1", "World!" );
 
 			relationship = firstNode.createRelationshipTo( secondNode, RelTypes.KNOWS );
 			relationship.setProperty( "message", "brave Neo4j " );
