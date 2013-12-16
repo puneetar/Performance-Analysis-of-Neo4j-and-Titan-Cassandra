@@ -7,11 +7,16 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
+import org.neo4j.graphdb.ConstraintViolationException;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.DynamicLabel;
+import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -20,7 +25,11 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.graphdb.factory.HighlyAvailableGraphDatabaseFactory;
 import org.neo4j.graphdb.index.ReadableIndex;
+import org.neo4j.kernel.DefaultFileSystemAbstraction;
 import org.neo4j.kernel.impl.util.FileUtils;
+import org.neo4j.unsafe.batchinsert.BatchInserter;
+import org.neo4j.unsafe.batchinsert.BatchInserterIndex;
+import org.neo4j.unsafe.batchinsert.BatchInserters;
 
 public class EmbeddedNeo4j {
 
@@ -31,6 +40,8 @@ public class EmbeddedNeo4j {
 	private String PATH_CSV_FILE="";
 	// START SNIPPET: vars
 	GraphDatabaseService graphDb;
+	HashMap<String, String> haConfig;
+	BatchInserter inserter;
 	Node firstNode;
 	Node secondNode;
 	Relationship relationship;
@@ -48,7 +59,7 @@ public class EmbeddedNeo4j {
 		// hello.removeData();
 		// hello.shutDown();
 	}
-
+	ReadableIndex<Node> nodeAutoIndex=null;
 	void createDb()
 	{
 		clearDb();
@@ -56,7 +67,7 @@ public class EmbeddedNeo4j {
 			arr_prop[i]="np"+i;
 		}
 
-		HashMap<String, String> haConfig = new HashMap<String, String>();
+		haConfig = new HashMap<String, String>();
 
 
 		haConfig.put("ha.server_id", "7");
@@ -74,70 +85,92 @@ public class EmbeddedNeo4j {
 		registerShutdownHook( graphDb );
 		
 		
-		ReadableIndex<Node> nodeAutoIndex =graphDb.index().getNodeAutoIndexer().getAutoIndex();
+		
+		nodeAutoIndex =graphDb.index().getNodeAutoIndexer().getAutoIndex();
+		
+		try {
+			//addNodes();
+			addNodesBatchInsert();
+		} catch (ConstraintViolationException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		
+	}
+
+	private void addNodesBatchInsert() throws ConstraintViolationException, IOException{
+		
+		
+		FileReader fr=new FileReader(PATH_CSV_FILE);
+		BufferedReader br=new BufferedReader(fr,10240);
+		String[] arr_token=null;
+		String line=null;
+		
+		Label userLabel = DynamicLabel.label( "Users" );
+		inserter.createDeferredSchemaIndex( userLabel ).on( "ID" ).create();
+		inserter = BatchInserters.inserter( DB_PATH, new DefaultFileSystemAbstraction(), haConfig);
+		
+		Map<String, Object> properties= new HashMap<>();
+		
+		while((line=br.readLine())!=null)
+		{
+			//arr_token=line.split(" ");
+				
+				
+				//Map<String, Object> properties = new HashMap<>();
+				properties.clear();
+				properties.put( "ID", "arr_token[1]" );
+				properties.put("property1", arr_prop[new Random().nextInt(1000)] );
+				long mattiasNode = inserter.createNode( properties, userLabel );
+				
+//				properties.put( "ID", "Chris" );
+//				
+//				long chrisNode = inserter.createNode( properties, userLabel );
+//				RelationshipType knows = DynamicRelationshipType.withName( "KNOWS" );
+//				// To set properties on the relationship, use a properties map
+//				// instead of null as the last parameter.
+//				inserter.createRelationship( mattiasNode, chrisNode, knows, null );
+
+		}
+		
+		inserter.shutdown();
+	}
+
+	private void addNodes(){
 		try ( Transaction tx = graphDb.beginTx() ){
-			
+
 			FileReader fr=new FileReader(PATH_CSV_FILE);
-			BufferedReader br=new BufferedReader(fr,1024000);
+			BufferedReader br=new BufferedReader(fr,10240);
 			String[] arr_token=null;
 			String line=null;
+			br.readLine();
 			while((line=br.readLine())!=null)
 			{
 				arr_token=line.split(" ");
-				
+
 				if(nodeAutoIndex.get("ID", arr_token[0]).getSingle()==null){
 					firstNode = graphDb.createNode();
 					firstNode.setProperty( "ID", arr_token[0] );
 					firstNode.setProperty( "property1", arr_prop[new Random().nextInt(1000)] );	
 				}
-				
+
 				if(nodeAutoIndex.get("ID", arr_token[1]).getSingle()==null){
 					firstNode = graphDb.createNode();
 					firstNode.setProperty( "ID", arr_token[1] );
 					firstNode.setProperty( "property1", arr_prop[new Random().nextInt(1000)] );	
 				}
-				
+
 			}
-			
+
 			tx.success();
+			br.close();fr.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		
-		
-		// END SNIPPET: transaction
-	}
-
-	private void addNodes(){
-		try ( Transaction tx = graphDb.beginTx() )
-		{
-			
-			firstNode = graphDb.createNode();
-			firstNode.setProperty( "ID", "Hello, " );
-			firstNode.setProperty( "property1", "World!" );
-
-			relationship = firstNode.createRelationshipTo( secondNode, RelTypes.KNOWS );
-			relationship.setProperty( "message", "brave Neo4j " );
-			// END SNIPPET: addData
-
-			// START SNIPPET: readData
-			System.out.print( firstNode.getProperty( "message" ) );
-			System.out.print( relationship.getProperty( "message" ) );
-			System.out.print( secondNode.getProperty( "message" ) );
-			// END SNIPPET: readData
-
-			greeting = ( (String) firstNode.getProperty( "message" ) )
-					+ ( (String) relationship.getProperty( "message" ) )
-					+ ( (String) secondNode.getProperty( "message" ) );
-
-			// START SNIPPET: transaction
-			tx.success();
 		}
 	}
 
