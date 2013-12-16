@@ -9,10 +9,11 @@ import java.util.concurrent.BlockingQueue;
 public class Producer implements Runnable {
 	private final BlockingQueue<String> queue;
 	Producer(BlockingQueue<String> q) { queue = q; }
-
+	
 	public void run() {
 
 		produce(); 
+		Consumer.flag=false;
 
 	}
 
@@ -32,7 +33,7 @@ public class Producer implements Runnable {
 				queue.add(arr_token[0]);
 				queue.add(arr_token[1]);
 			}
-			
+			br.close();fr.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

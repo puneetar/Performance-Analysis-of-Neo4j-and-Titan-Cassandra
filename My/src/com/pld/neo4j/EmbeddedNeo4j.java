@@ -12,6 +12,7 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.neo4j.graphdb.ConstraintViolationException;
 import org.neo4j.graphdb.Direction;
@@ -43,7 +44,7 @@ public class EmbeddedNeo4j {
 
 	public String greeting;
 	private String[] arr_prop=new String[1000];
-	public static String PATH_CSV_FILE="final.csv";
+	public static String PATH_CSV_FILE="wikipedia_link_fr.csv";
 	// START SNIPPET: vars
 	public static GraphDatabaseService graphDb;
 	HashMap<String, String> haConfig;
@@ -115,7 +116,7 @@ public class EmbeddedNeo4j {
 	
 	private void addNodesMultiThread(ReadableIndex<Node> nodeAutoIndex2){
 
-		BlockingQueue<String> q = new ArrayBlockingQueue<String>(1024);
+		BlockingQueue<String> q = new LinkedBlockingQueue<String>(10240);
 		Producer p = new Producer(q);
 		Consumer c1 = new Consumer(q,nodeAutoIndex2);
 		//Consumer c2 = new Consumer(q);
