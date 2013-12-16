@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.Scanner;
 
 import org.neo4j.graphdb.Direction;
@@ -71,20 +72,40 @@ public class EmbeddedNeo4j {
         setConfig( GraphDatabaseSettings.node_auto_indexing, "true" ).
         newGraphDatabase();
 		registerShutdownHook( graphDb );
-		// END SNIPPET: startDb
-
-		// START SNIPPET: transaction
 		
-		try {
+		
+		ReadableIndex<Node> nodeAutoIndex =graphDb.index().getNodeAutoIndexer().getAutoIndex();
+		
+		
+		try ( Transaction tx = graphDb.beginTx() ){
 			
 			FileReader fr=new FileReader(PATH_CSV_FILE);
 			BufferedReader br=new BufferedReader(fr,1024000);
+			String[] arr_token=null;
+			String line=null;
+			while((line=br.readLine())!=null)
+			{
+				arr_token=line.split(" ");
+				
+				if(nodeAutoIndex.get("ID", arr_token[0]).getSingle()==null){
+					firstNode = graphDb.createNode();
+					firstNode.setProperty( "ID", arr_token[0] );
+					firstNode.setProperty( "property1", arr_prop[new Random().nextInt(1000)] );	
+				}
+				
+				if(nodeAutoIndex.get("ID", arr_token[1]).getSingle()==null){
+					firstNode = graphDb.createNode();
+					firstNode.setProperty( "ID", arr_token[1] );
+					firstNode.setProperty( "property1", arr_prop[new Random().nextInt(1000)] );	
+				}
+				
+			}
 			
-			//HashSet<String>
-			
-			addNodes();
-			
+			tx.success();
 		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
