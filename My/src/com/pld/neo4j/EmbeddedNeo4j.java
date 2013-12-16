@@ -33,11 +33,12 @@ import org.neo4j.unsafe.batchinsert.BatchInserters;
 
 public class EmbeddedNeo4j {
 
-	private static final String DB_PATH = "test.db";
+	//private static final String DB_PATH = "test.db";
+	private static final String DB_PATH="wikipedia_link_fr.csv";
 
 	public String greeting;
 	private String[] arr_prop=new String[1000];
-	private String PATH_CSV_FILE="wikipedia_link_fr.csv";
+	private String PATH_CSV_FILE="final.csv";
 	// START SNIPPET: vars
 	GraphDatabaseService graphDb;
 	HashMap<String, String> haConfig;
@@ -89,9 +90,9 @@ public class EmbeddedNeo4j {
 		nodeAutoIndex =graphDb.index().getNodeAutoIndexer().getAutoIndex();
 		
 		try {
-			//addNodes();
-			addNodesBatchInsert();
-		} catch (ConstraintViolationException | IOException e) {
+			addNodes();
+			//addNodesBatchInsert();
+		} catch (ConstraintViolationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -108,8 +109,9 @@ public class EmbeddedNeo4j {
 		String line=null;
 		
 		Label userLabel = DynamicLabel.label( "Users" );
-		inserter.createDeferredSchemaIndex( userLabel ).on( "ID" ).create();
 		inserter = BatchInserters.inserter( DB_PATH, new DefaultFileSystemAbstraction(), haConfig);
+		inserter.createDeferredSchemaIndex( userLabel ).on( "ID" ).create();
+		
 		
 		Map<String, Object> properties= new HashMap<>();
 		
