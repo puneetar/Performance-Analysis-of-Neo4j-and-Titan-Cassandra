@@ -25,7 +25,7 @@ import static com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfigu
 
 
 /**
-* ok
+* 
 *
 * @author Puneet Arora
 */
