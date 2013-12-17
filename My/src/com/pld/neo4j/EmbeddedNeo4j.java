@@ -44,7 +44,9 @@ public class EmbeddedNeo4j {
 
 	public String greeting;
 	private String[] arr_prop=new String[1000];
+	//public static String PATH_CSV_FILE="wikipedia_link_fr.csv";
 	public static String PATH_CSV_FILE="wikipedia_link_fr.csv";
+	
 	// START SNIPPET: vars
 	public static GraphDatabaseService graphDb;
 	HashMap<String, String> haConfig;
@@ -66,7 +68,7 @@ public class EmbeddedNeo4j {
 		// hello.removeData();
 		// hello.shutDown();
 	}
-	ReadableIndex<Node> nodeAutoIndex=null;
+	public static ReadableIndex<Node> nodeAutoIndex=null;
 	void createDb()
 	{
 		clearDb();
@@ -101,6 +103,7 @@ public class EmbeddedNeo4j {
 			//addNodesBatchInsert();
 			//addBatch();
 			addNodesMultiThread(nodeAutoIndex);
+			//addRelationships();
 		} catch (ConstraintViolationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -113,16 +116,31 @@ public class EmbeddedNeo4j {
 		//		
 
 	}
+	private void addRelationships(){
+		try ( Transaction tx = graphDb.beginTx() ){
+		firstNode = graphDb.createNode();
+		firstNode.setProperty( "message", "Hello, " );
+		secondNode = graphDb.createNode();
+		secondNode.setProperty( "message", "World!" );
+		 
+		relationship = firstNode.createRelationshipTo( secondNode, RelTypes.KNOWS );
+		relationship.setProperty( "message", "brave Neo4j " );
+		tx.success();
+		}
+	}
 	
 	private void addNodesMultiThread(ReadableIndex<Node> nodeAutoIndex2){
 
-		BlockingQueue<String> q = new LinkedBlockingQueue<String>(10240);
+		BlockingQueue<String> q = new ArrayBlockingQueue<String>(10240);
 		Producer p = new Producer(q);
 		Consumer c1 = new Consumer(q,nodeAutoIndex2);
+	//	Consumer c2 = new Consumer(q,nodeAutoIndex2);
+	//	Consumer c3 = new Consumer(q,nodeAutoIndex2);
 		//Consumer c2 = new Consumer(q);
 		new Thread(p).start();
 		new Thread(c1).start();
-		//new Thread(c2).start();
+	//	new Thread(c2).start();
+		//new Thread(c3).start();
 
 	}
 	
@@ -191,6 +209,7 @@ public class EmbeddedNeo4j {
 			{
 				arr_token=line.split(" ");
 
+				
 				if(nodeAutoIndex.get("ID", arr_token[0]).getSingle()==null){
 					firstNode = graphDb.createNode();
 					firstNode.setProperty( "ID", arr_token[0] );

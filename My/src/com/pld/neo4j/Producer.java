@@ -29,12 +29,16 @@ public class Producer implements Runnable {
 
 			while((line=br.readLine())!=null)
 			{
-				arr_token=line.split(" ");
-				queue.add(arr_token[0]);
-				queue.add(arr_token[1]);
+				queue.put(line);
+				//arr_token=line.split(" ");
+//				queue.put(arr_token[0]);
+//				queue.put(arr_token[1]);
 			}
 			br.close();fr.close();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
