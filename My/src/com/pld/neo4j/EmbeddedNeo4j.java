@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
@@ -88,7 +89,7 @@ public class EmbeddedNeo4j {
 		graphDb = new HighlyAvailableGraphDatabaseFactory()
 		.newHighlyAvailableDatabaseBuilder(DB_PATH)
 		.setConfig(haConfig).
-		setConfig( GraphDatabaseSettings.node_keys_indexable, "id" ).
+		setConfig( GraphDatabaseSettings.node_keys_indexable, "users" ).
 		setConfig( GraphDatabaseSettings.node_auto_indexing, "true" ).		
 		newGraphDatabase();
 		registerShutdownHook( graphDb );
@@ -98,12 +99,18 @@ public class EmbeddedNeo4j {
 				nodeAutoIndex =graphDb.index().getNodeAutoIndexer().getAutoIndex();
 		//	 TransactionalGraph graph = new Neo4jHaGraph("/path/to/ha_db_dir", haConfig);
 
-		try {
+				try ( Transaction tx = graphDb.beginTx() ){
 			//addNodes();
 			//addNodesBatchInsert();
 			//addBatch();
-			addNodesMultiThread(nodeAutoIndex);
+			//addNodesMultiThread(nodeAutoIndex);
 			//addRelationships();
+			
+			Iterator<Node> itrnode = graphDb.getAllNodes().iterator();
+			while(itrnode.hasNext()){
+				System.out.println(itrnode.next());
+			}
+			tx.success();
 		} catch (ConstraintViolationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -172,6 +179,8 @@ public class EmbeddedNeo4j {
 
 
 		Map<String, Object> properties= new HashMap<>();
+		
+		
 
 		while((line=br.readLine())!=null)
 		{
@@ -183,9 +192,9 @@ public class EmbeddedNeo4j {
 			properties.put( "ID", line );
 			properties.put("property1", arr_prop[new Random().nextInt(1000)] );
 			long mattiasNode = inserter.createNode( properties, userLabel );
+			
 
 			//				properties.put( "ID", "Chris" );
-			//				
 			//				long chrisNode = inserter.createNode( properties, userLabel );
 			//				RelationshipType knows = DynamicRelationshipType.withName( "KNOWS" );
 			//				// To set properties on the relationship, use a properties map
