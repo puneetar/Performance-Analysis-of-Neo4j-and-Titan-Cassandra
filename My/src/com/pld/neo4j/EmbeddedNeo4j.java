@@ -59,7 +59,7 @@ public class EmbeddedNeo4j {
 	private String[] arr_prop_node=new String[1000];
 	private String[] arr_prop_edge=new String[1000];
 	//public static String PATH_CSV_FILE="wikipedia_link_fr.csv";
-	public static String PATH_CSV_FILE="wikipedia_link_fr.csv";
+	public static String PATH_CSV_FILE="out.facebook-sg";
 
 	// START SNIPPET: vars
 	public static GraphDatabaseService graphDb;
@@ -73,6 +73,7 @@ public class EmbeddedNeo4j {
 	Relationship rel;
 	Iterable<Relationship> itrRel;
 	Iterator<Relationship> itRel;
+	static String  nodeId, nodeId1, nodeId2;
 
 
 	private static enum RelTypes implements RelationshipType
@@ -84,7 +85,13 @@ public class EmbeddedNeo4j {
 	public static void main( String[] args )
 	{
 		EmbeddedNeo4j hello = new EmbeddedNeo4j();
-		hello.createDb(args[0]);
+
+		System.out.println("\nEnter your choice:\n");
+		System.out.println("1.Add node\n 2.Get node \n 3.Add Node Property\n 4. Get Node Property \n 5. Add edge\n 6. Get Edge\n 7.Remove node"
+				+ "\n 8. Remove Node Property\n 9. Remove Edge \n 10. Remove Edge Property\n 11. Add edge property\n");
+		Scanner in=new Scanner(System.in);
+		String input=in.nextLine();
+		hello.createDb(input);
 		// hello.removeData();
 		// hello.shutDown();
 	}
@@ -123,38 +130,55 @@ public class EmbeddedNeo4j {
 			//addSingleNode();
 			tx.success();
 		}
-		
+		try {
+			benchmarks(Integer.parseInt(choice));
+		} catch (NumberFormatException | FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-
-		benchmarks(Integer.parseInt(choice));
-		
-
-		//micro-benchmarks
-		//addSingleNode(nodeId,valueNode);
-		//getNode(nodeId);
-		//addProperty(nodeId, valueNode);
-		//		getProperty(nodeId);
-		//addRelationship(nodeId1, nodeId2, valueEdge);
-		//		getRelationship(nodeId);
-		//		removeNode(nodeId);
-		//		removeNodeProperty(nodeId);
-		//		removeEdgeProperty(nodeId);
-		//removeRelationship(nodeId1,nodeId2);
-		//removeRelationship2(nodeId1,nodeId2);
-		//		
-
-		
 	}
 
-	private void benchmarks(int choice){
-		String nodeId="3";
-		String nodeId1="3";
-		String nodeId2="1";
+	private void benchmarks(int choice) throws IOException{
+		String nodeId;
+		String nodeId1;
+		String nodeId2;
+		FileReader fr=new FileReader(PATH_CSV_FILE);
+		BufferedReader br=new BufferedReader(fr,10240);
+		String[] arr_token=null;
+		String line=null;
+		Map<String, String> hmp= new HashMap<>();
+		int count=0;
+		while((line=br.readLine())!=null)
+		{
+			arr_token= line.split(" ");
+			hmp.put(arr_token[0], arr_token[1]);
+			count++;
+			if(count>50)
+				break;
+		}
+		br.close();
+		while(true){
+			nodeId=Integer.toString(new Random().nextInt(5000000));
+			try ( Transaction tx = graphDb.beginTx() ){
+				node=index.get("id", nodeId).getSingle();
+				if(node!=null)
+					break;
+				tx.success();
+			}
+		}
+		while(true){
+			nodeId1=hmp.get(new Random().nextInt(50));
+			nodeId2=hmp.get(new Random().nextInt(50));
+			if(!nodeId1.equals(nodeId2))
+				break;
+		}
 		String valueNode=arr_prop_node[new Random().nextInt(1000)];
 		String valueEdge=arr_prop_edge[new Random().nextInt(1000)];
-		System.out.println("\nEnter your choice:\n");
-		System.out.println("1.Add node\n 2.Get node \n 3.Add Node Property\n 4. Get Node Property \n 5. Add edge\n 6. Get Edge\n 7.Remove node"
-				+ "\n 8. Remove Nodr Property\n 9. Remove Edge \n 10. Remove Edge Property\n 11. Add edge property\n");
+
 		long startTime,endTime;
 		startTime = System.currentTimeMillis();
 		switch(choice){
@@ -197,8 +221,6 @@ public class EmbeddedNeo4j {
 	private void getNode(String nodeId){
 		System.out.println("here");
 		try ( Transaction tx = graphDb.beginTx() ){
-
-			index=indexmgr.forNodes("node_auto_index");
 			node=index.get("id", nodeId).getSingle();
 			tx.success();
 		}
@@ -302,7 +324,7 @@ public class EmbeddedNeo4j {
 
 	}
 	private void addEdgeProperty(String nodeId1, String nodeId2){
-		
+
 	}
 	private ArrayList<Node> getNeighbors(String nodeId){
 		ArrayList<Node> arls= new ArrayList<Node>(); 
