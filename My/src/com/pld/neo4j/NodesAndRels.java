@@ -12,8 +12,8 @@ import java.util.Random;
 
 public class NodesAndRels {
 	public static String INPUT_CSV_FILE="out.facebook-sg";
-	public static String OUTOUT_NODE_CSV="nodes_8m.csv";
-	public static String OUTOUT_RELS_CSV="rels_8m.csv";
+	public static String OUTOUT_NODE_CSV="nodes_5m.csv";
+	public static String OUTOUT_RELS_CSV="rels_5m.csv";
 	private static String[] arr_prop_node=new String[1000];
 	private static String[] arr_prop_edge=new String[1000];
 
@@ -40,7 +40,7 @@ public class NodesAndRels {
 			FileWriter fw_rels=new FileWriter(rels);
 			BufferedWriter bw_rels = new BufferedWriter(fw_rels,10240);
 
-			String node_col_names="id:string:users\tnproperty\n";
+			String node_col_names="id:string:node_auto_index\tnproperty\n";
 			String rels_col_names="start\tend\ttype\teproperty\n";
 
 			bw_node.write(node_col_names);
@@ -51,7 +51,7 @@ public class NodesAndRels {
 
 			//HashSet<RelationShips> hash_str=new HashSet<RelationShips>();
 			HashSet<String> hash_str=new HashSet<String>();
-			int final_limit=8000000;
+			int final_limit=5000000;
 			for(int i=1;i<=final_limit;i++){
 				bw_node.write(i+"\t"+arr_prop_node[new Random().nextInt(1000)]+"\n");
 			}
