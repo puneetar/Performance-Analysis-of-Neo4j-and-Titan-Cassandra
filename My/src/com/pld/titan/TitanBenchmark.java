@@ -1,5 +1,6 @@
 package com.pld.titan;
 
+import com.carrotsearch.randomizedtesting.generators.RandomInts;
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.thinkaurelius.titan.core.TitanKey;
@@ -24,63 +25,131 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Scanner;
 
 import static com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration.INDEX_BACKEND_KEY;
 import static com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY;
 
 
 /**
- * 
  *
  * @author Puneet Arora
  */
+
 public class TitanBenchmark {
 
 	//public static final String INDEX_NAME = "search";
 	public final static String INPUT_CSV_FILE="/home/pld6/git/My/My/facebook-sg/newaa";
 	public final static String BACTH_LOAD_PROPERTIES="src/com/pld/titan/bachLoading_titan-cassandra-es.properties";
 	public final static String BENCHMARKING_PROPERTIES="src/com/pld/titan/benchMarking_titan-cassandra-es.properties";
-	static final int final_limit=5000000;
-	private final static String[] arr_prop_node=new String[1000];
-	private final static String[] arr_prop_edge=new String[1000];
-
+	public static HashMap<String,HashSet<String>> currentBenchmarkData;
 
 	public static void main(String args[]){
-		for(int i=0;i<1000;i++){
-			arr_prop_node[i]="np"+i;
-			arr_prop_edge[i]="ep"+i;
-		}
+
+		currentBenchmarkData=loadNewRandomBenchmarkData(100);
 
 		while(true){
-			long startTime = System.currentTimeMillis();
+			System.out.println("\nEnter your choice:\n");
+			System.out.println("0. Bulk Load Data \n "
+					+ "1. Add node\n "
+					+ "2. Get node \n "
+					+ "3. Add Node Property\n "
+					+ "4. Get Node Property \n "
+					+ "5. Add edge\n "
+					+ "6. Get Edge\n "
+					+ "7. Remove node\n"
+					+ "8. Remove Node Property\n "
+					+ "9. Remove Edge \n "
+					+ "10. Remove Edge Property\n "
+					+ "11. Add edge property\n");
+			Scanner in=new Scanner(System.in);
+			String input=in.nextLine();
+			int choice;
+			try {
+				choice = Integer.parseInt(input);
+			} catch (NumberFormatException e) {
+				System.out.println("Invalid Input : NumberFormatException\n\n");
+				break;
+			}
 
-			batchLoadData("titan-cassandra-es.properties",INPUT_CSV_FILE);
+			TitanMicroBenchmarks microBenchmark=new TitanMicroBenchmarks();
+			long timeTaken = System.currentTimeMillis();
+			switch(choice){
+			case 0:
+				BatchGraphImpl.batchLoadData(BACTH_LOAD_PROPERTIES,INPUT_CSV_FILE);
+				break;
 
-			long endTime = System.currentTimeMillis();
-			System.out.println("That took " + (endTime - startTime) + " milliseconds");
+
+			case 1:
+				microBenchmark.addNode();
+				break;
+			case 2: 
+				microBenchmark.getNode(getRandomNode());
+				break;
+			case 3: 
+				microBenchmark.deleteNode(getRandomNode());
+				break;
+			case 4: 
+				microBenchmark.updateNode(getRandomNode());
+				break;
+
+
+			case 5:
+				microBenchmark.addNodeProperty(getRandomNode());
+				break;
+			case 6: 
+				microBenchmark.getNodeProperty(getRandomNode());
+				break;
+			case 7: 
+				microBenchmark.deleteNodeProperty(getRandomNode());
+				break;
+			case 8: 
+				microBenchmark.updateNodeProperty(getRandomNode());
+				break;
+
+
+			case 9:
+				microBenchmark.addEdge(new String[]{getRandomNode(),getRandomNode()});
+				break;
+			case 10: 
+				microBenchmark.getEdge(getTwoRelatedNodes());
+				break;
+			case 12: 
+				microBenchmark.deleteEdge(getTwoRelatedNodes());
+				break;
+			case 13: 
+				microBenchmark.updateEdge(getTwoRelatedNodes());
+				break;
+
+
+			case 14:
+				microBenchmark.addEdgeProperty(getTwoRelatedNodes());
+				break;
+			case 15: 
+				microBenchmark.getEdgeProperty(getTwoRelatedNodes());
+				break;
+			case 16: 
+				microBenchmark.deleteEdgeProperty(getTwoRelatedNodes());
+				break;
+			case 17: 
+				microBenchmark.updateEdgeProperty(getTwoRelatedNodes());
+				break;
+
+
+			default:
+				System.out.println("Invalid Input\n\n");
+				break;
+			}
 
 		}
 
 
-		//RexsterClient client=null;
-		//	try{
-		//			client= getRexsterClientConnection();
-		//			if(client!=null){
-		//				loadFromCSV(client);
-		//			}
-		//		}
-		//		finally{
-		//			try {
-		//				client.close();
-		//			} catch (IOException e) {
-		//				// TODO Auto-generated catch block
-		//				e.printStackTrace();
-		//			}
-		//		}
 	}
 
 	public static TitanGraph getGraph(String propertiesFile,boolean createKeys){
@@ -96,159 +165,73 @@ public class TitanBenchmark {
 		return graph;
 	}
 
-	public static TitanGraph batchLoadData(String propertiesFile, String csvFile) {
-		//	BaseConfiguration config = new BaseConfiguration();
-		//		Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
-		//		// storage.setProperty(GraphDatabaseConfiguration.STORAGE_CONF_FILE_KEY, arg1)
-		//		// configuring local backend
-		//		storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, "embeddedcassandra");
-		//		storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, "cassandra.yaml");
-		//		// configuring elastic search index
-		//		Configuration index = storage.subset(GraphDatabaseConfiguration.INDEX_NAMESPACE).subset(INDEX_NAME);
-		//		index.setProperty(INDEX_BACKEND_KEY, "elasticsearch");
-		//		index.setProperty("local-mode", true);
-		//		index.setProperty("client-only", false);
-		//		index.setProperty(STORAGE_DIRECTORY_KEY, "db/es");
 
-		TitanGraph graph=getGraph(propertiesFile, true);
-		BatchGraph<TitanGraph> bgraph = new BatchGraph<TitanGraph>(graph, VertexIDType.STRING, 1000);
-		//bgraph.setLoadingFromScratch(false);
-		//BatchGraph bgraph = BatchGraph.wrap(graph);
+	public static HashMap<String,HashSet<String>> loadNewRandomBenchmarkData(int numOfDataLoaded){
+		System.out.println("Loading Data:\n---------------------");
+		if(numOfDataLoaded==0 || numOfDataLoaded>100){
+			numOfDataLoaded=100;
+		}
 
+		HashMap<String,HashSet<String>> hmp_data=new HashMap<String,HashSet<String>>();
+		FileReader fr;
+		BufferedReader br;
 		try {
-			FileReader fr = new FileReader(csvFile);
-			BufferedReader br=new BufferedReader(fr);
-			br.readLine();
-
-			System.out.println(Thread.currentThread().getId()+" : "+csvFile);
-
+			fr = new FileReader(INPUT_CSV_FILE);
+			br=new BufferedReader(fr,10240);
 			String line;
 			String arr_token[]=new String[2];
-			Vertex[] vertices;
-			Edge edge;
-			int j=1;
-			int k=500000;
-			while((line=br.readLine())!=null) {
-				arr_token=line.split(" ");
-
-				if(Integer.parseInt(arr_token[0])<final_limit && Integer.parseInt(arr_token[1])<final_limit ){
-					System.out.println(Thread.currentThread().getId()+" : "+j+++" : "+line);
-					if(j>k){
-						k=k+500000;
-						System.gc();
-						System.out.println("doing system gc");
-						Thread.sleep(10000);
+			int j=new Random().nextInt(1000);
+			int i=0;
+			while((line=br.readLine())!=null || hmp_data.size()>=numOfDataLoaded) {
+				if(i++==j){
+					arr_token=line.split(" ");	
+					j=j+numOfDataLoaded;	
+					System.out.println(line);
+					if(hmp_data.containsKey(arr_token[0])){
+						HashSet<String> hst=hmp_data.get(arr_token[0]);
+						hst.add(arr_token[1]);
+						hmp_data.put(arr_token[0],hst);
 					}
-					vertices = new Vertex[2];
-					for (int i=0;i<2;i++) {
-						vertices[i] = bgraph.getVertex(arr_token[i]);
-
-						if (vertices[i]==null){
-							vertices[i]=bgraph.addVertex(arr_token[i],"userid",arr_token[i],"nproperty", arr_prop_node[new Random().nextInt(1000)]);
-							// 	vertices[i].setProperty("nproperty", arr_prop_node[new Random().nextInt(1000)]);
-						}
+					else{
+						HashSet<String> hst=new HashSet<String>();
+						hst.add(arr_token[1]);
+						hmp_data.put(arr_token[0], hst);
 					}
-					edge = bgraph.addEdge(null,vertices[0],vertices[1],"KNOWS","eproperty",arr_prop_edge[new Random().nextInt(1000)]);
-					//edge.setProperty("eproperty",arr_prop_edge[new Random().nextInt(1000)]);
 				}
 			}
-			bgraph.commit();
-			graph.commit();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		return graph;
-	}
-
-
-	public void addSignleNode(){
-
-	}
-
-	public static RexsterClient getRexsterClientConnection(){
-		RexsterClient client=null;
-		try {
-
-			BaseConfiguration conf = new BaseConfiguration() {{
-				addProperty(RexsterClientTokens.CONFIG_HOSTNAME, "192.168.0.56");
-				addProperty(RexsterClientTokens.CONFIG_MESSAGE_RETRY_WAIT_MS, 0);
-				addProperty(RexsterClientTokens.CONFIG_GRAPH_NAME, "graph");
-			}};
-
-			//client = RexsterClientFactory.open("192.168.0.56","graph");
-			client=RexsterClientFactory.open(conf);
-
-		} catch (RexProException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			br.close();
+			fr.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		return client;
+
+		return hmp_data;
+
 	}
 
-	public static void loadFromCSV(RexsterClient client){
-		for(int i=0;i<1000;i++){
-			arr_prop_node[i]="np"+i;
-			arr_prop_edge[i]="ep"+i;
-		}
-		try {
-			List<Map<String,Object>> result;
-			//			FileReader fr = new FileReader(INPUT_CSV_FILE);
-			//			BufferedReader br=new BufferedReader(fr,10240);
-			//			br.readLine();
-			//
-			//			
-			//			for(int i=1;i<=final_limit;i++){
-			//				//bw_node.write(i+"\t"+arr_prop_node[new Random().nextInt(1000)]+"\n");
-			//				result= client.execute("g.addVertex(['userid':'"+i+"','nproperty':'"+arr_prop_node[new Random().nextInt(1000)]+"'])");
-			//				System.out.println(result);
-			//			}
-			//			
-			//			String arr_token[]=new String[2];
-			//			String line;
-			//			while((line=br.readLine())!=null){
-			//				arr_token=line.split(" ");
-			//
-			//				if(Integer.parseInt(arr_token[0])<final_limit && Integer.parseInt(arr_token[1])<final_limit){
-			//					//bw_rels.write(arr_token[0]+"\t"+arr_token[1]+"\t"+"KNOWS"+
-			//						//	"\t"+arr_prop_edge[new Random().nextInt(1000)]+"\n");
-			//					
-			//					result= client.execute("g.addEdge(g.getVertex("+arr_token[0]+"),"+
-			//					"g.addEdge(g.getVertex("+arr_token[0]+")"+
-			//					",'KNOWS',[eproperty:"+arr_prop_node[new Random().nextInt(1000)]+"])");
-			//					System.out.println(result);
-			//				}
-			//			
-			//			}
-			//		//	result= client.execute("g.addVertex(['userid':'106','name':'divya'])");
-			//		//	System.out.println(result);
+	public static String getRandomNode(){
+		if(currentBenchmarkData==null || currentBenchmarkData.size()==0)
+			currentBenchmarkData=loadNewRandomBenchmarkData(0);
 
-			result=client.execute("vs=[] as Set;new File(\""+INPUT_CSV_FILE+"\").eachLine{l->p=l.split(\" \");vs<<p[0];vs<<p[1];}");
-			//result= client.execute("g.V.userid");
-			System.out.println(result);
-
-			//vs=[] as Set;new File("/home/pld6/git/My/My/facebook-sg/facebook.100").eachLine{l->p=l.split(" ");println "${p[0]}"; vs<<p[0];vs<<p[1];}
-			//vs.each{v->g.addVertex(['userid':v,'']v)}
-			//	new File("/home/pld6/git/My/My/facebook-sg/facebook.100").eachLine{l->p=l.split(" ");println "adding edge between ${p[0]} : ${p[1]}";g.addEdge(g.getVertex(${p[0]}),g.getVertex(${p[1]}),'friend')}
-
-		} catch (RexProException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Random random = new Random();
+		List<String> keys = new ArrayList<String>(currentBenchmarkData.keySet());
+		String randomKey = keys.get( random.nextInt(keys.size()) );
+		//HashSet<String> value = currentBenchmarkData.get(randomKey);
+		return randomKey;
 	}
 
+	public static String[] getTwoRelatedNodes(){
+		if(currentBenchmarkData==null || currentBenchmarkData.size()==0)
+			currentBenchmarkData=loadNewRandomBenchmarkData(0);
+
+		Random random = new Random();
+		List<String> keys = new ArrayList<String>(currentBenchmarkData.keySet());
+		String randomKey = keys.get( random.nextInt(keys.size()) );
+		List<String> setOfValue = new ArrayList<String>(currentBenchmarkData.get(randomKey));
+		String value=setOfValue.get( random.nextInt(keys.size()) );
+
+		return new String[]{randomKey,value};
+	}
 
 }
