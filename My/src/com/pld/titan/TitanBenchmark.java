@@ -1,3 +1,5 @@
+package com.pld.titan;
+
 import com.thinkaurelius.titan.core.TitanFactory;
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.thinkaurelius.titan.core.TitanKey;
@@ -38,8 +40,10 @@ import static com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfigu
  */
 public class TitanBenchmark {
 
-	public static final String INDEX_NAME = "search";
+	//public static final String INDEX_NAME = "search";
 	public final static String INPUT_CSV_FILE="/home/pld6/git/My/My/facebook-sg/newaa";
+	public final static String BACTH_LOAD_PROPERTIES="src/com/pld/titan/bachLoading_titan-cassandra-es.properties";
+	public final static String BENCHMARKING_PROPERTIES="src/com/pld/titan/benchMarking_titan-cassandra-es.properties";
 	static final int final_limit=5000000;
 	private final static String[] arr_prop_node=new String[1000];
 	private final static String[] arr_prop_edge=new String[1000];
@@ -51,19 +55,23 @@ public class TitanBenchmark {
 			arr_prop_edge[i]="ep"+i;
 		}
 
-		RexsterClient client=null;
+		while(true){
+			long startTime = System.currentTimeMillis();
+
+			batchLoadData("titan-cassandra-es.properties",INPUT_CSV_FILE);
+
+			long endTime = System.currentTimeMillis();
+			System.out.println("That took " + (endTime - startTime) + " milliseconds");
+
+		}
+
+
+		//RexsterClient client=null;
 		//	try{
 		//			client= getRexsterClientConnection();
 		//			if(client!=null){
 		//				loadFromCSV(client);
 		//			}
-		long startTime = System.currentTimeMillis();
-
-				create("titan-cassandra-es.properties",INPUT_CSV_FILE);
-		
-		long endTime = System.currentTimeMillis();
-		System.out.println("That took " + (endTime - startTime) + " milliseconds");
-
 		//		}
 		//		finally{
 		//			try {
@@ -75,10 +83,21 @@ public class TitanBenchmark {
 		//		}
 	}
 
+	public static TitanGraph getGraph(String propertiesFile,boolean createKeys){
+		TitanGraph graph = /*TitanFactory.open(config);*/TitanFactory.open(propertiesFile);
 
-	public static TitanGraph create(String propertiesFile, String csvFile) {
-	//	BaseConfiguration config = new BaseConfiguration();
+		if(createKeys){
+			graph.makeKey("nproperty").dataType(String.class).make();
+			graph.makeKey("userid").dataType(String.class).indexed(Vertex.class).make();
+			graph.makeKey("eproperty").dataType(String.class).make();
+			graph.makeLabel("KNOWS").make();
+		}
 
+		return graph;
+	}
+
+	public static TitanGraph batchLoadData(String propertiesFile, String csvFile) {
+		//	BaseConfiguration config = new BaseConfiguration();
 		//		Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
 		//		// storage.setProperty(GraphDatabaseConfiguration.STORAGE_CONF_FILE_KEY, arg1)
 		//		// configuring local backend
@@ -90,15 +109,8 @@ public class TitanBenchmark {
 		//		index.setProperty("local-mode", true);
 		//		index.setProperty("client-only", false);
 		//		index.setProperty(STORAGE_DIRECTORY_KEY, "db/es");
-		System.out.println(Thread.currentThread().getId()+" : enter method");
 
-		TitanGraph graph = /*TitanFactory.open(config);*/TitanFactory.open(propertiesFile);
-		graph.makeKey("nproperty").dataType(String.class).make();
-		graph.makeKey("userid").dataType(String.class).indexed(Vertex.class).make();
-		graph.makeKey("eproperty").dataType(String.class).make();
-		graph.makeLabel("KNOWS").make();
-		//graph.createKeyIndex("userid", Vertex.class);
-		System.out.println(Thread.currentThread().getId()+" : after titan");
+		TitanGraph graph=getGraph(propertiesFile, true);
 		BatchGraph<TitanGraph> bgraph = new BatchGraph<TitanGraph>(graph, VertexIDType.STRING, 1000);
 		//bgraph.setLoadingFromScratch(false);
 		//BatchGraph bgraph = BatchGraph.wrap(graph);
@@ -109,7 +121,7 @@ public class TitanBenchmark {
 			br.readLine();
 
 			System.out.println(Thread.currentThread().getId()+" : "+csvFile);
-			
+
 			String line;
 			String arr_token[]=new String[2];
 			Vertex[] vertices;
@@ -117,9 +129,8 @@ public class TitanBenchmark {
 			int j=1;
 			int k=500000;
 			while((line=br.readLine())!=null) {
-
 				arr_token=line.split(" ");
-				
+
 				if(Integer.parseInt(arr_token[0])<final_limit && Integer.parseInt(arr_token[1])<final_limit ){
 					System.out.println(Thread.currentThread().getId()+" : "+j+++" : "+line);
 					if(j>k){
@@ -142,24 +153,20 @@ public class TitanBenchmark {
 				}
 			}
 			bgraph.commit();
+			graph.commit();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		graph.commit();
-		//TitanGraph graph = TitanFactory.open("/home/pld6/titan-all-0.4.1/conf/titan-cassandra-embedded-es.properties");
-		//GraphOfTheGodsFactory.load(graph);
 		return graph;
 	}
 
-	
+
 	public void addSignleNode(){
-		
+
 	}
-	
+
 	public static RexsterClient getRexsterClientConnection(){
 		RexsterClient client=null;
 		try {
