@@ -59,7 +59,7 @@ public class BatchGraphImpl {
 			Edge edge;
 			int j=1;
 			int k=500000;
-			long startTime = System.currentTimeMillis();
+			
 			StopWatch st =new StopWatch();
 			st.start();
 			while((line=br.readLine())!=null) {
@@ -88,8 +88,9 @@ public class BatchGraphImpl {
 					//edge.setProperty("eproperty",arr_prop_edge[new Random().nextInt(1000)]);
 				}
 			}
-			bgraph.commit();
-			graph.commit();
+			bgraph.commit();	graph.commit();
+			br.close();		fr.close();
+			
 			st.stop();
 			System.out.println("Time taken : " + st.toString());
 		} catch (IOException e) {

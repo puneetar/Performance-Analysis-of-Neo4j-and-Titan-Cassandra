@@ -19,6 +19,7 @@ import com.tinkerpop.rexster.client.RexsterClientTokens;
 
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.time.StopWatch;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -49,11 +50,13 @@ public class TitanBenchmark {
 	public final static String BACTH_LOAD_PROPERTIES="src/com/pld/titan/bachLoading_titan-cassandra-es.properties";
 	public final static String BENCHMARKING_PROPERTIES="src/com/pld/titan/benchMarking_titan-cassandra-es.properties";
 	public static HashMap<String,HashSet<String>> currentBenchmarkData;
-
+	static Random random = new Random();
+	
 	public static void main(String args[]){
-
+		Scanner in=new Scanner(System.in);
 		currentBenchmarkData=loadNewRandomBenchmarkData(100);
-
+		TitanMicroBenchmarks microBenchmark=new TitanMicroBenchmarks(getGraph(BENCHMARKING_PROPERTIES, false));
+		
 		while(true){
 			System.out.println("\nEnter your choice:\n");
 			System.out.println("0. Bulk Load Data \n "
@@ -68,7 +71,7 @@ public class TitanBenchmark {
 					+ "9. Remove Edge \n "
 					+ "10. Remove Edge Property\n "
 					+ "11. Add edge property\n");
-			Scanner in=new Scanner(System.in);
+			
 			String input=in.nextLine();
 			int choice;
 			try {
@@ -78,8 +81,8 @@ public class TitanBenchmark {
 				break;
 			}
 
-			TitanMicroBenchmarks microBenchmark=new TitanMicroBenchmarks();
-			long timeTaken = System.currentTimeMillis();
+			
+
 			switch(choice){
 			case 0:
 				BatchGraphImpl.batchLoadData(BACTH_LOAD_PROPERTIES,INPUT_CSV_FILE);
@@ -146,10 +149,7 @@ public class TitanBenchmark {
 				System.out.println("Invalid Input\n\n");
 				break;
 			}
-
 		}
-
-
 	}
 
 	public static TitanGraph getGraph(String propertiesFile,boolean createKeys){
@@ -180,9 +180,9 @@ public class TitanBenchmark {
 			br=new BufferedReader(fr,10240);
 			String line;
 			String arr_token[]=new String[2];
-			int j=new Random().nextInt(1000);
+			int j=random.nextInt(1000);
 			int i=0;
-			while((line=br.readLine())!=null || hmp_data.size()>=numOfDataLoaded) {
+			while((line=br.readLine())!=null && hmp_data.size()<=numOfDataLoaded) {
 				if(i++==j){
 					arr_token=line.split(" ");	
 					j=j+numOfDataLoaded;	
@@ -214,7 +214,7 @@ public class TitanBenchmark {
 		if(currentBenchmarkData==null || currentBenchmarkData.size()==0)
 			currentBenchmarkData=loadNewRandomBenchmarkData(0);
 
-		Random random = new Random();
+		
 		List<String> keys = new ArrayList<String>(currentBenchmarkData.keySet());
 		String randomKey = keys.get( random.nextInt(keys.size()) );
 		//HashSet<String> value = currentBenchmarkData.get(randomKey);
@@ -225,13 +225,17 @@ public class TitanBenchmark {
 		if(currentBenchmarkData==null || currentBenchmarkData.size()==0)
 			currentBenchmarkData=loadNewRandomBenchmarkData(0);
 
-		Random random = new Random();
+		
 		List<String> keys = new ArrayList<String>(currentBenchmarkData.keySet());
 		String randomKey = keys.get( random.nextInt(keys.size()) );
 		List<String> setOfValue = new ArrayList<String>(currentBenchmarkData.get(randomKey));
-		String value=setOfValue.get( random.nextInt(keys.size()) );
+		String value=setOfValue.get( random.nextInt(setOfValue.size()) );
 
 		return new String[]{randomKey,value};
+	}
+	
+	public static void printTime(String st){
+		System.out.println("Time Taken : "+st);
 	}
 
 }
