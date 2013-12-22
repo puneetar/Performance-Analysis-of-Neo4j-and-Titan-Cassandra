@@ -73,7 +73,9 @@ public class EmbeddedNeo4j {
 	Relationship rel;
 	Iterable<Relationship> itrRel;
 	Iterator<Relationship> itRel;
-	static String  nodeId, nodeId1, nodeId2;
+	String  nodeId, nodeId1, nodeId2;
+	String valueNode,valueEdge;
+	HashMap<String, String> hmp= new HashMap<>();
 
 
 	private static enum RelTypes implements RelationshipType
@@ -86,17 +88,12 @@ public class EmbeddedNeo4j {
 	{
 		EmbeddedNeo4j hello = new EmbeddedNeo4j();
 
-		System.out.println("\nEnter your choice:\n");
-		System.out.println("1.Add node\n 2.Get node \n 3.Add Node Property\n 4. Get Node Property \n 5. Add edge\n 6. Get Edge\n 7.Remove node"
-				+ "\n 8. Remove Node Property\n 9. Remove Edge \n 10. Remove Edge Property\n 11. Add edge property\n");
-		Scanner in=new Scanner(System.in);
-		String input=in.nextLine();
-		hello.createDb(input);
+		hello.createDb();
 		// hello.removeData();
 		// hello.shutDown();
 	}
 	public static ReadableIndex<Node> nodeAutoIndex=null;
-	void createDb(String choice)
+	void createDb()
 	{
 		clearDb();
 		for(int i=0;i<1000;i++){
@@ -125,13 +122,27 @@ public class EmbeddedNeo4j {
 		indexmgr = graphDb.index();
 		//nodeAutoIndex =graphDb.index().getNodeAutoIndexer().getAutoIndex();
 		//
-		try ( Transaction tx = graphDb.beginTx() ){
-			index=indexmgr.forNodes("node_auto_index");
-			//addSingleNode();
-			tx.success();
-		}
+		//		try ( Transaction tx = graphDb.beginTx() ){
+		//			index=indexmgr.forNodes("node_auto_index");
+		//			//addSingleNode();
+		//			tx.success();
+		//		}
 		try {
-			benchmarks(Integer.parseInt(choice));
+			FileReader fr=new FileReader(PATH_CSV_FILE);
+			BufferedReader br=new BufferedReader(fr,10240);
+			String[] arr_token=null;
+			String line=null;
+			int count=0;
+			line=br.readLine();
+			while((line=br.readLine())!=null)
+			{
+				arr_token= line.split(" ");
+				hmp.put(arr_token[0], arr_token[1]);
+				if(hmp.size()>1000)
+					break;
+			}
+			br.close();
+			benchmarks();
 		} catch (NumberFormatException | FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -142,74 +153,134 @@ public class EmbeddedNeo4j {
 
 	}
 
-	private void benchmarks(int choice) throws IOException{
-		String nodeId;
-		String nodeId1;
-		String nodeId2;
-		FileReader fr=new FileReader(PATH_CSV_FILE);
-		BufferedReader br=new BufferedReader(fr,10240);
-		String[] arr_token=null;
-		String line=null;
-		Map<String, String> hmp= new HashMap<>();
-		int count=0;
-		while((line=br.readLine())!=null)
-		{
-			arr_token= line.split(" ");
-			hmp.put(arr_token[0], arr_token[1]);
-			count++;
-			if(count>50)
-				break;
-		}
-		br.close();
+	private void getRandomData() throws IOException{
+
 		while(true){
 			nodeId=Integer.toString(new Random().nextInt(5000000));
 			try ( Transaction tx = graphDb.beginTx() ){
+				index=indexmgr.forNodes("node_auto_index");
 				node=index.get("id", nodeId).getSingle();
-				if(node!=null)
+
+				if(node!=null){
+					System.out.println("Node id "+nodeId);
 					break;
+				}
 				tx.success();
 			}
 		}
-		while(true){
-			nodeId1=hmp.get(new Random().nextInt(50));
-			nodeId2=hmp.get(new Random().nextInt(50));
-			if(!nodeId1.equals(nodeId2))
-				break;
-		}
-		String valueNode=arr_prop_node[new Random().nextInt(1000)];
-		String valueEdge=arr_prop_edge[new Random().nextInt(1000)];
 
-		long startTime,endTime;
-		startTime = System.currentTimeMillis();
-		switch(choice){
-		case 1:addSingleNode(nodeId,valueNode);
-		break;
-		case 2: getNode(nodeId);
-		break;
-		case 3: addProperty(nodeId, valueNode);
-		break;
-		case 4: getProperty(nodeId);
-		break;
-		case 5: addRelationship(nodeId1, nodeId2, valueEdge);
-		break;
-		case 6: getRelationship(nodeId);
-		break;
-		case 7: removeNode(nodeId);
-		break;
-		case 8: removeNodeProperty(nodeId);
-		break;
-		case 9: removeRelationship(nodeId1, nodeId2);
-		break;
-		case 10:removeEdgeProperty(nodeId);
-		break;
-		case 11: addEdgeProperty(nodeId1, nodeId2);
+		while(true){
+			int i=new Random().nextInt(1000);
+			int j=new Random().nextInt(1000);
+			System.out.println(hmp.size());
+			nodeId1=hmp.get(Integer.toString(i));
+			nodeId2=hmp.get(Integer.toString(j));
+			if(!nodeId1.equals(nodeId2)){
+				System.out.println("Node Id 1 "+nodeId1);
+				System.out.println("Node Id 2 "+nodeId2);
+				break;
+			}
 		}
-		endTime = System.currentTimeMillis();
-		long totalTime = endTime - startTime;
-		System.out.println("Time taken is" +totalTime + "millisecond");
+		valueNode=arr_prop_node[new Random().nextInt(1000)];
+		valueEdge=arr_prop_edge[new Random().nextInt(1000)];
+
+	}
+	private void benchmarks() throws IOException{
+		int choice;
+
+		while(true){
+			getRandomData();
+			System.out.println("Enter your chooice:");
+			System.out.println("1.Add node\n2.Get node\n3.Add Node Property\n4.Get Node Property\n5.Add edge\n6.Get Edge\n7.Remove node"
+					+ "\n 8.Remove Node Property\n9.Remove Edge\n10.Remove Edge Property\n11.Add edge property\n");
+			Scanner in=new Scanner(System.in);
+			String input=in.nextLine();
+			choice=Integer.parseInt(input);
+
+			long startTime = 0,endTime=0;
+
+			switch(choice){
+			case 1:{
+				System.out.println("Enter node id to be added:");
+				String nodeId3=in.nextLine();
+				startTime = System.currentTimeMillis();
+				addSingleNode(nodeId3,valueNode);
+				endTime = System.currentTimeMillis();
+				break;
+			}
+			case 2: {
+				startTime = System.currentTimeMillis();
+				getNode(nodeId);
+				endTime = System.currentTimeMillis();
+				break;
+			}
+
+			case 3:{ 
+				startTime = System.currentTimeMillis();
+				addProperty(nodeId, valueNode);
+				endTime = System.currentTimeMillis();
+				break;
+			}
+			case 4: {
+				startTime = System.currentTimeMillis();
+				getProperty(nodeId);
+				endTime = System.currentTimeMillis();
+				break;
+			}
+			case 5: {
+				startTime = System.currentTimeMillis();
+				addRelationship(nodeId1, nodeId2, valueEdge);
+				endTime = System.currentTimeMillis();
+				break;
+			}
+
+			case 6: {
+				startTime = System.currentTimeMillis();
+				getRelationship(nodeId);
+				endTime = System.currentTimeMillis();
+				break;
+			}
+
+			case 7: {
+				startTime = System.currentTimeMillis();
+				removeNode(nodeId);
+				endTime = System.currentTimeMillis();
+				break;
+			}
+			case 8:{ 
+				startTime = System.currentTimeMillis();
+				removeNodeProperty(nodeId);
+				endTime = System.currentTimeMillis();
+				break;
+			}
+			case 9:{ 
+				startTime = System.currentTimeMillis();
+				removeRelationship(nodeId1, nodeId2);
+				endTime = System.currentTimeMillis();
+				break;
+			}
+			case 10:{
+				startTime = System.currentTimeMillis();
+				removeEdgeProperty(nodeId);
+				endTime = System.currentTimeMillis();
+				break;
+			}
+			case 11: {
+				startTime = System.currentTimeMillis();
+				addEdgeProperty(nodeId1, nodeId2);
+				endTime = System.currentTimeMillis();
+				break;
+			}
+			}
+
+			long totalTime = endTime - startTime;
+			System.out.println("Time taken is" +totalTime + "millisecond");
+		}
+
 	}
 
 	private void addSingleNode(String nodeId,String valueNode){
+		System.out.println("adding node");
 		try ( Transaction tx = graphDb.beginTx() ){
 			node = graphDb.createNode();
 			node.setProperty( "id",nodeId );
