@@ -123,11 +123,11 @@ public class EmbeddedNeo4j {
 			//addSingleNode();
 			tx.success();
 		}
-		
+
 
 
 		benchmarks(Integer.parseInt(choice));
-		
+
 
 		//micro-benchmarks
 		//addSingleNode(nodeId,valueNode);
@@ -143,7 +143,7 @@ public class EmbeddedNeo4j {
 		//removeRelationship2(nodeId1,nodeId2);
 		//		
 
-		
+
 	}
 
 	private void benchmarks(int choice){
@@ -302,7 +302,7 @@ public class EmbeddedNeo4j {
 
 	}
 	private void addEdgeProperty(String nodeId1, String nodeId2){
-		
+
 	}
 	private ArrayList<Node> getNeighbors(String nodeId){
 		ArrayList<Node> arls= new ArrayList<Node>(); 

@@ -4,8 +4,11 @@ import com.thinkaurelius.titan.core.TitanKey;
 import com.thinkaurelius.titan.core.attribute.Geoshape;
 import com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration;
 import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.ElementHelper;
+import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
+import com.tinkerpop.blueprints.util.wrappers.batch.VertexIDType;
 import com.tinkerpop.rexster.client.RexProException;
 import com.tinkerpop.rexster.client.RexsterClient;
 import com.tinkerpop.rexster.client.RexsterClientFactory;
@@ -14,57 +17,162 @@ import com.tinkerpop.rexster.client.RexsterClientTokens;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import static com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration.INDEX_BACKEND_KEY;
 import static com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY;
 
 
 /**
-* 
-*
-* @author Puneet Arora
-*/
+ * 
+ *
+ * @author Puneet Arora
+ */
 public class TitanBenchmark {
 
-    public static final String INDEX_NAME = "search";
+	public static final String INDEX_NAME = "search";
+	public final static String INPUT_CSV_FILE="/home/pld6/git/My/My/facebook-sg/newaa";
+	static final int final_limit=5000000;
+	private final static String[] arr_prop_node=new String[1000];
+	private final static String[] arr_prop_edge=new String[1000];
 
-    public static void main(String args[]){
-    	RexsterClient client=null;
-    	try{
-    		client= getRexsterClientConnection();
-    		if(client!=null){
-    			executeCode(client);
-    		}
-    	}
-    	finally{
-			try {
-				client.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+
+	public static void main(String args[]){
+		for(int i=0;i<1000;i++){
+			arr_prop_node[i]="np"+i;
+			arr_prop_edge[i]="ep"+i;
 		}
-    }
-    
-    public static RexsterClient getRexsterClientConnection(){
-    	RexsterClient client=null;
-    	try {
-    		
-    		BaseConfiguration conf = new BaseConfiguration() {{
-    		    addProperty(RexsterClientTokens.CONFIG_HOSTNAME, "192.168.0.194");
-    		    addProperty(RexsterClientTokens.CONFIG_MESSAGE_RETRY_WAIT_MS, 0);
-    		    addProperty(RexsterClientTokens.CONFIG_GRAPH_NAME, "graph");
-    		}};
-    		//TitanGraph graph = TitanFactory.open(conf);
-    		//System.out.println(graph);
-    		client = RexsterClientFactory.open(conf);
-			//return RexsterClientFactory.open("localhost", "graph");
+
+		RexsterClient client=null;
+		//	try{
+		//			client= getRexsterClientConnection();
+		//			if(client!=null){
+		//				loadFromCSV(client);
+		//			}
+		long startTime = System.currentTimeMillis();
+
+				create("titan-cassandra-es.properties",INPUT_CSV_FILE);
+		
+		long endTime = System.currentTimeMillis();
+		System.out.println("That took " + (endTime - startTime) + " milliseconds");
+
+		//		}
+		//		finally{
+		//			try {
+		//				client.close();
+		//			} catch (IOException e) {
+		//				// TODO Auto-generated catch block
+		//				e.printStackTrace();
+		//			}
+		//		}
+	}
+
+
+	public static TitanGraph create(String propertiesFile, String csvFile) {
+	//	BaseConfiguration config = new BaseConfiguration();
+
+		//		Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
+		//		// storage.setProperty(GraphDatabaseConfiguration.STORAGE_CONF_FILE_KEY, arg1)
+		//		// configuring local backend
+		//		storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, "embeddedcassandra");
+		//		storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, "cassandra.yaml");
+		//		// configuring elastic search index
+		//		Configuration index = storage.subset(GraphDatabaseConfiguration.INDEX_NAMESPACE).subset(INDEX_NAME);
+		//		index.setProperty(INDEX_BACKEND_KEY, "elasticsearch");
+		//		index.setProperty("local-mode", true);
+		//		index.setProperty("client-only", false);
+		//		index.setProperty(STORAGE_DIRECTORY_KEY, "db/es");
+		System.out.println(Thread.currentThread().getId()+" : enter method");
+
+		TitanGraph graph = /*TitanFactory.open(config);*/TitanFactory.open(propertiesFile);
+		graph.makeKey("nproperty").dataType(String.class).make();
+		graph.makeKey("userid").dataType(String.class).indexed(Vertex.class).make();
+		graph.makeKey("eproperty").dataType(String.class).make();
+		graph.makeLabel("KNOWS").make();
+		//graph.createKeyIndex("userid", Vertex.class);
+		System.out.println(Thread.currentThread().getId()+" : after titan");
+		BatchGraph<TitanGraph> bgraph = new BatchGraph<TitanGraph>(graph, VertexIDType.STRING, 1000);
+		//bgraph.setLoadingFromScratch(false);
+		//BatchGraph bgraph = BatchGraph.wrap(graph);
+
+		try {
+			FileReader fr = new FileReader(csvFile);
+			BufferedReader br=new BufferedReader(fr);
+			br.readLine();
+
+			System.out.println(Thread.currentThread().getId()+" : "+csvFile);
 			
+			String line;
+			String arr_token[]=new String[2];
+			Vertex[] vertices;
+			Edge edge;
+			int j=1;
+			int k=500000;
+			while((line=br.readLine())!=null) {
+
+				arr_token=line.split(" ");
+				
+				if(Integer.parseInt(arr_token[0])<final_limit && Integer.parseInt(arr_token[1])<final_limit ){
+					System.out.println(Thread.currentThread().getId()+" : "+j+++" : "+line);
+					if(j>k){
+						k=k+500000;
+						System.gc();
+						System.out.println("doing system gc");
+						Thread.sleep(10000);
+					}
+					vertices = new Vertex[2];
+					for (int i=0;i<2;i++) {
+						vertices[i] = bgraph.getVertex(arr_token[i]);
+
+						if (vertices[i]==null){
+							vertices[i]=bgraph.addVertex(arr_token[i],"userid",arr_token[i],"nproperty", arr_prop_node[new Random().nextInt(1000)]);
+							// 	vertices[i].setProperty("nproperty", arr_prop_node[new Random().nextInt(1000)]);
+						}
+					}
+					edge = bgraph.addEdge(null,vertices[0],vertices[1],"KNOWS","eproperty",arr_prop_edge[new Random().nextInt(1000)]);
+					//edge.setProperty("eproperty",arr_prop_edge[new Random().nextInt(1000)]);
+				}
+			}
+			bgraph.commit();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		graph.commit();
+		//TitanGraph graph = TitanFactory.open("/home/pld6/titan-all-0.4.1/conf/titan-cassandra-embedded-es.properties");
+		//GraphOfTheGodsFactory.load(graph);
+		return graph;
+	}
+
+	
+	public void addSignleNode(){
+		
+	}
+	
+	public static RexsterClient getRexsterClientConnection(){
+		RexsterClient client=null;
+		try {
+
+			BaseConfiguration conf = new BaseConfiguration() {{
+				addProperty(RexsterClientTokens.CONFIG_HOSTNAME, "192.168.0.56");
+				addProperty(RexsterClientTokens.CONFIG_MESSAGE_RETRY_WAIT_MS, 0);
+				addProperty(RexsterClientTokens.CONFIG_GRAPH_NAME, "graph");
+			}};
+
+			//client = RexsterClientFactory.open("192.168.0.56","graph");
+			client=RexsterClientFactory.open(conf);
+
 		} catch (RexProException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -76,35 +184,53 @@ public class TitanBenchmark {
 			e.printStackTrace();
 		}
 		return client;
-    }
-    
-    public static void executeCode(RexsterClient client){
-    	try {
+	}
 
-    		List<Map<String,Object>> result;
-    		
-//    		result= client.execute("g = TinkerGraphFactory.createTinkerGraph()");
-//    		System.out.println(result);
-//    		client.close();
-    	//	client = RexsterClientFactory.open("localhost", "tinkugraph");
-    		System.out.println("ok i got it");
-    		//Thread.sleep(50000);
-    		result= client.execute("g.addVertex(null,[name:\"stephen\"])");
-    		System.out.println(result);
-    		
-    		result= client.execute("g.v(1).values()");
-    		System.out.println(result);
-    		
-    		
-    		
-//    		
-//			
-//			result = client.execute("g.V('name','saturn').in('father').map");
-//			// result.toString(): [{name="jupiter", type="god"}]
-//
-//			Map<String,Object> params = new HashMap<String,Object>();
-//			params.put("name","saturn");
-//			result = client.execute("g.V('name',name).in('father').map",params);
+	public static void loadFromCSV(RexsterClient client){
+		for(int i=0;i<1000;i++){
+			arr_prop_node[i]="np"+i;
+			arr_prop_edge[i]="ep"+i;
+		}
+		try {
+			List<Map<String,Object>> result;
+			//			FileReader fr = new FileReader(INPUT_CSV_FILE);
+			//			BufferedReader br=new BufferedReader(fr,10240);
+			//			br.readLine();
+			//
+			//			
+			//			for(int i=1;i<=final_limit;i++){
+			//				//bw_node.write(i+"\t"+arr_prop_node[new Random().nextInt(1000)]+"\n");
+			//				result= client.execute("g.addVertex(['userid':'"+i+"','nproperty':'"+arr_prop_node[new Random().nextInt(1000)]+"'])");
+			//				System.out.println(result);
+			//			}
+			//			
+			//			String arr_token[]=new String[2];
+			//			String line;
+			//			while((line=br.readLine())!=null){
+			//				arr_token=line.split(" ");
+			//
+			//				if(Integer.parseInt(arr_token[0])<final_limit && Integer.parseInt(arr_token[1])<final_limit){
+			//					//bw_rels.write(arr_token[0]+"\t"+arr_token[1]+"\t"+"KNOWS"+
+			//						//	"\t"+arr_prop_edge[new Random().nextInt(1000)]+"\n");
+			//					
+			//					result= client.execute("g.addEdge(g.getVertex("+arr_token[0]+"),"+
+			//					"g.addEdge(g.getVertex("+arr_token[0]+")"+
+			//					",'KNOWS',[eproperty:"+arr_prop_node[new Random().nextInt(1000)]+"])");
+			//					System.out.println(result);
+			//				}
+			//			
+			//			}
+			//		//	result= client.execute("g.addVertex(['userid':'106','name':'divya'])");
+			//		//	System.out.println(result);
+
+			result=client.execute("vs=[] as Set;new File(\""+INPUT_CSV_FILE+"\").eachLine{l->p=l.split(\" \");vs<<p[0];vs<<p[1];}");
+			//result= client.execute("g.V.userid");
+			System.out.println(result);
+
+			//vs=[] as Set;new File("/home/pld6/git/My/My/facebook-sg/facebook.100").eachLine{l->p=l.split(" ");println "${p[0]}"; vs<<p[0];vs<<p[1];}
+			//vs.each{v->g.addVertex(['userid':v,'']v)}
+			//	new File("/home/pld6/git/My/My/facebook-sg/facebook.100").eachLine{l->p=l.split(" ");println "adding edge between ${p[0]} : ${p[1]}";g.addEdge(g.getVertex(${p[0]}),g.getVertex(${p[1]}),'friend')}
+
 		} catch (RexProException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -115,117 +241,7 @@ public class TitanBenchmark {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    }
+	}
 
-    public static TitanGraph create(final String directory) {
-        BaseConfiguration config = new BaseConfiguration();
-        
-        Configuration storage = config.subset(GraphDatabaseConfiguration.STORAGE_NAMESPACE);
-       // storage.setProperty(GraphDatabaseConfiguration.STORAGE_CONF_FILE_KEY, arg1)
-        // configuring local backend
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_BACKEND_KEY, "embeddedcassandra");
-        storage.setProperty(GraphDatabaseConfiguration.STORAGE_DIRECTORY_KEY, "cassandra.yaml");
-        // configuring elastic search index
-        Configuration index = storage.subset(GraphDatabaseConfiguration.INDEX_NAMESPACE).subset(INDEX_NAME);
-        index.setProperty(INDEX_BACKEND_KEY, "elasticsearch");
-        index.setProperty("local-mode", true);
-        index.setProperty("client-only", false);
-        index.setProperty(STORAGE_DIRECTORY_KEY, "db/es");
-        
 
-        TitanGraph graph = TitanFactory.open(config);
-
-    	
-    	    	
-        //TitanGraph graph = TitanFactory.open("/home/pld6/titan-all-0.4.1/conf/titan-cassandra-embedded-es.properties");
-        //GraphOfTheGodsFactory.load(graph);
-        return graph;
-    }
-
-    public static void load(final TitanGraph graph) {
-
-        graph.makeKey("name").dataType(String.class).indexed(Vertex.class).unique().make();
-        graph.makeKey("age").dataType(Integer.class).indexed(INDEX_NAME, Vertex.class).make();
-        graph.makeKey("type").dataType(String.class).make();
-
-        final TitanKey time = graph.makeKey("time").dataType(Integer.class).make();
-        final TitanKey reason = graph.makeKey("reason").dataType(String.class).indexed(INDEX_NAME, Edge.class).make();
-        graph.makeKey("place").dataType(Geoshape.class).indexed(INDEX_NAME, Edge.class).make();
-
-        graph.makeLabel("father").manyToOne().make();
-        graph.makeLabel("mother").manyToOne().make();
-        graph.makeLabel("battled").sortKey(time).make();
-        graph.makeLabel("lives").signature(reason).make();
-        graph.makeLabel("pet").make();
-        graph.makeLabel("brother").make();
-
-        graph.commit();
-
-        // vertices
-
-        Vertex saturn = graph.addVertex(null);
-        saturn.setProperty("name", "saturn");
-        saturn.setProperty("age", 10000);
-        saturn.setProperty("type", "titan");
-
-        Vertex sky = graph.addVertex(null);
-        ElementHelper.setProperties(sky, "name", "sky", "type", "location");
-
-        Vertex sea = graph.addVertex(null);
-        ElementHelper.setProperties(sea, "name", "sea", "type", "location");
-
-        Vertex jupiter = graph.addVertex(null);
-        ElementHelper.setProperties(jupiter, "name", "jupiter", "age", 5000, "type", "god");
-
-        Vertex neptune = graph.addVertex(null);
-        ElementHelper.setProperties(neptune, "name", "neptune", "age", 4500, "type", "god");
-
-        Vertex hercules = graph.addVertex(null);
-        ElementHelper.setProperties(hercules, "name", "hercules", "age", 30, "type", "demigod");
-
-        Vertex alcmene = graph.addVertex(null);
-        ElementHelper.setProperties(alcmene, "name", "alcmene", "age", 45, "type", "human");
-
-        Vertex pluto = graph.addVertex(null);
-        ElementHelper.setProperties(pluto, "name", "pluto", "age", 4000, "type", "god");
-
-        Vertex nemean = graph.addVertex(null);
-        ElementHelper.setProperties(nemean, "name", "nemean", "type", "monster");
-
-        Vertex hydra = graph.addVertex(null);
-        ElementHelper.setProperties(hydra, "name", "hydra", "type", "monster");
-
-        Vertex cerberus = graph.addVertex(null);
-        ElementHelper.setProperties(cerberus, "name", "cerberus", "type", "monster");
-
-        Vertex tartarus = graph.addVertex(null);
-        ElementHelper.setProperties(tartarus, "name", "tartarus", "type", "location");
-
-        // edges
-
-        jupiter.addEdge("father", saturn);
-        jupiter.addEdge("lives", sky).setProperty("reason", "loves fresh breezes");
-        jupiter.addEdge("brother", neptune);
-        jupiter.addEdge("brother", pluto);
-
-        neptune.addEdge("lives", sea).setProperty("reason", "loves waves");
-        neptune.addEdge("brother", jupiter);
-        neptune.addEdge("brother", pluto);
-
-        hercules.addEdge("father", jupiter);
-        hercules.addEdge("mother", alcmene);
-        ElementHelper.setProperties(hercules.addEdge("battled", nemean), "time", 1, "place", Geoshape.point(38.1f, 23.7f));
-        ElementHelper.setProperties(hercules.addEdge("battled", hydra), "time", 2, "place", Geoshape.point(37.7f, 23.9f));
-        ElementHelper.setProperties(hercules.addEdge("battled", cerberus), "time", 12, "place", Geoshape.point(39f, 22f));
-
-        pluto.addEdge("brother", jupiter);
-        pluto.addEdge("brother", neptune);
-        pluto.addEdge("lives", tartarus).setProperty("reason", "no fear of death");
-        pluto.addEdge("pet", cerberus);
-
-        cerberus.addEdge("lives", tartarus);
-
-        // commit the transaction to disk
-        graph.commit();
-    }
 }
