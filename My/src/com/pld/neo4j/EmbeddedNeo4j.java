@@ -35,6 +35,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.graphdb.factory.HighlyAvailableGraphDatabaseFactory;
+import org.neo4j.graphdb.index.AutoIndexer;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.IndexManager;
@@ -65,8 +66,8 @@ public class EmbeddedNeo4j {
 	public static GraphDatabaseService graphDb;
 	HashMap<String, String> haConfig;
 	BatchInserter inserter;
-	IndexManager indexmgr;
-	Index<Node> index;
+	AutoIndexer<Node> indexmgr;
+	ReadableIndex<Node> index;
 	IndexHits<Node> indexhits;
 	Iterator<Object> itr;
 	Node node, firstNode,secondNode;
@@ -114,12 +115,12 @@ public class EmbeddedNeo4j {
 		graphDb = new HighlyAvailableGraphDatabaseFactory()
 		.newHighlyAvailableDatabaseBuilder(DB_PATH)
 		.setConfig(haConfig).
-		setConfig( GraphDatabaseSettings.node_keys_indexable, "node_auto_index" ).
-		setConfig( GraphDatabaseSettings.node_auto_indexing, "true" ).		
+		setConfig( GraphDatabaseSettings.node_auto_indexing, "true" ).
+		setConfig( GraphDatabaseSettings.node_keys_indexable, "id" ).
 		newGraphDatabase();
 		registerShutdownHook( graphDb );
 
-		indexmgr = graphDb.index();
+		indexmgr = graphDb.index().getNodeAutoIndexer();
 		//nodeAutoIndex =graphDb.index().getNodeAutoIndexer().getAutoIndex();
 		//
 		//		try ( Transaction tx = graphDb.beginTx() ){
@@ -158,7 +159,8 @@ public class EmbeddedNeo4j {
 		while(true){
 			nodeId=Integer.toString(new Random().nextInt(5000000));
 			try ( Transaction tx = graphDb.beginTx() ){
-				index=indexmgr.forNodes("node_auto_index");
+				indexmgr.setEnabled(true);
+				index=indexmgr.getAutoIndex();
 				node=index.get("id", nodeId).getSingle();
 
 				if(node!=null){
@@ -172,10 +174,9 @@ public class EmbeddedNeo4j {
 		while(true){
 			int i=new Random().nextInt(1000);
 			int j=new Random().nextInt(1000);
-			System.out.println(hmp.size());
 			nodeId1=hmp.get(Integer.toString(i));
 			nodeId2=hmp.get(Integer.toString(j));
-			if(!nodeId1.equals(nodeId2)){
+			if(nodeId1!=null && nodeId2!=null && !nodeId1.equals(nodeId2)){
 				System.out.println("Node Id 1 "+nodeId1);
 				System.out.println("Node Id 2 "+nodeId2);
 				break;
@@ -190,7 +191,7 @@ public class EmbeddedNeo4j {
 
 		while(true){
 			getRandomData();
-			System.out.println("Enter your chooice:");
+			System.out.println("Enter your choice:");
 			System.out.println("1.Add node\n2.Get node\n3.Add Node Property\n4.Get Node Property\n5.Add edge\n6.Get Edge\n7.Remove node"
 					+ "\n 8.Remove Node Property\n9.Remove Edge\n10.Remove Edge Property\n11.Add edge property\n");
 			Scanner in=new Scanner(System.in);
@@ -209,9 +210,21 @@ public class EmbeddedNeo4j {
 				break;
 			}
 			case 2: {
+				System.out.println("Enter node id to get ");
+				String nodei=in.nextLine();
 				startTime = System.currentTimeMillis();
-				getNode(nodeId);
+				Node node=getNode(nodei);
 				endTime = System.currentTimeMillis();
+				try ( Transaction tx = graphDb.beginTx() ){
+					if(node!=null){
+						System.out.println(node.getProperty("id"));
+						System.out.println(node.getProperty("nproperty"));
+						tx.success();
+					}
+					else
+						System.out.println("node not found");
+				}
+
 				break;
 			}
 
@@ -223,8 +236,9 @@ public class EmbeddedNeo4j {
 			}
 			case 4: {
 				startTime = System.currentTimeMillis();
-				getProperty(nodeId);
+				String prop=getProperty(nodeId);
 				endTime = System.currentTimeMillis();
+				System.out.println("Property is:"+prop);
 				break;
 			}
 			case 5: {
@@ -274,27 +288,29 @@ public class EmbeddedNeo4j {
 			}
 
 			long totalTime = endTime - startTime;
-			System.out.println("Time taken is" +totalTime + "millisecond");
+			System.out.println("Time taken is:" +totalTime + " millisecond");
 		}
 
 	}
 
-	private void addSingleNode(String nodeId,String valueNode){
-		System.out.println("adding node");
+	private Node addSingleNode(String nodeId,String valueNode){
 		try ( Transaction tx = graphDb.beginTx() ){
 			node = graphDb.createNode();
-			node.setProperty( "id",nodeId );
-			node.setProperty( "nproperty",valueNode );	
+			node.setProperty("id",nodeId );
+			node.setProperty("nproperty",valueNode );
+			
 			tx.success();
 		}
+		return node;
 	}
 
-	private void getNode(String nodeId){
+	private Node getNode(String nodeId){
 		System.out.println("here");
 		try ( Transaction tx = graphDb.beginTx() ){
 			node=index.get("id", nodeId).getSingle();
 			tx.success();
 		}
+		return node;
 	}
 
 	private void addProperty(String nodeId,String value){
@@ -306,12 +322,14 @@ public class EmbeddedNeo4j {
 
 	}
 
-	private void getProperty(String nodeId){
+	private String getProperty(String nodeId){
+		String prop;
 		try ( Transaction tx = graphDb.beginTx() ){
 			node=index.get("id",nodeId).getSingle();
-			node.getProperty("nproperty");
+			prop=(String) node.getProperty("nproperty");
 			tx.success();
 		}
+		return prop;
 	}
 
 	private void addRelationship(String nodeId1, String nodeId2, String relPropValue){
