@@ -212,7 +212,8 @@ public class EmbeddedNeo4j {
 			System.out.println("Enter your choice:");
 			System.out.println("1.Add node\n2.Get node\n3.Add Node Property\n4.Get Node Property\n5.Add edge\n6.Get Edge\n7.Remove node"
 					+ "\n 8.Remove Node Property\n9.Remove Edge\n10.Remove Edge Property\n11.Add edge property\n12. Update Node"
-					+ "\n13.Update Node Property\n14.Update Edge\n15.Get Edge Property\n16.Update Edge Property");
+					+ "\n13.Update Node Property\n14.Update Edge\n15.Get Edge Property\n16.Update Edge Property"
+					+"\n17.get k-hop neighbors");
 
 			String input=in.nextLine();
 			choice=Integer.parseInt(input);
@@ -355,6 +356,13 @@ public class EmbeddedNeo4j {
 				break;
 
 			}
+			case 17:
+				MacroBenchmarks mab= new MacroBenchmarks();
+				String nodeId= getRandomNode();
+				System.out.println("Node Id:"+nodeId);
+				System.out.println("Enter depth");
+				input=in.nextLine();
+				mab.k_hop_neighbors(nodeId, Integer.parseInt(input));
 			}
 		}
 
