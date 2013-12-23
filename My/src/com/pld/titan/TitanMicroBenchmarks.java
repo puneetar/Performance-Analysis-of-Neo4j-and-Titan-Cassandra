@@ -35,17 +35,23 @@ public class TitanMicroBenchmarks {
 
 	public boolean addNode(){
 		StopWatch st=new StopWatch();
+
 		st.start();
+
 		Vertex v=graph.addVertex(null);
 		graph.commit();
+
 		st.stop();
+
 		v.setProperty("userid", ""+ (++currentNodes));
 		v.setProperty("nproperty", arr_prop_node[rand.nextInt(1000)]);
 		graph.commit();
 		TitanBenchmark.printTime(st.toString());
+		System.out.println("Node Added : "+v);
 		return true;
 	}
 	public boolean getNode(String nodeId){
+		System.out.println("NodeId refered: " + nodeId );
 		StopWatch st=new StopWatch();
 		st.start();
 		//Iterator<Vertex> v_itr=graph.query().has("userid",Compare.EQUAL,nodeId).vertices().iterator();
@@ -53,12 +59,12 @@ public class TitanMicroBenchmarks {
 		st.stop();
 
 		TitanBenchmark.printTime(st.toString());
-		boolean result=v.getProperty("userid").equals(nodeId);
-		System.out.println("Verification of result : " + result);
-		return result;
+		System.out.println(" Node Recieved :"+v);
+		return true;
 
 	}
 	public boolean deleteNode(String nodeId){
+		System.out.println("NodeId refered: " + nodeId );
 		//Iterator<Vertex> v_itr=graph.query().has("userid",Compare.EQUAL,nodeId).vertices().iterator();
 		Vertex v=getVertex(nodeId);
 		StopWatch st=new StopWatch();
@@ -68,41 +74,41 @@ public class TitanMicroBenchmarks {
 			edges.next().remove();
 		}
 		v.remove();
+		graph.commit();
 		st.stop();
 		TitanBenchmark.printTime(st.toString());
+		System.out.println("Node deleted : "+v);
 		return true;	
 	}
+	
 	public boolean updateNode(String nodeId){
 		return updateNodeProperty(nodeId);
 	}
 
 
 	public boolean addNodeProperty(String nodeId){
-		Vertex v=graph.addVertex(null);
+		System.out.println("NodeId refered: " + nodeId );
+		Vertex v=getVertex(nodeId);
+		v.removeProperty("nproperty");
 		graph.commit();
 
 		StopWatch st=new StopWatch();
-		st.start();
-		v.setProperty("userid", ""+ (++currentNodes));
-		graph.commit();
-		st.stop();
-		TitanBenchmark.printTime(st.toString());
-
-		st.reset();
 		st.start();
 		v.setProperty("nproperty", arr_prop_node[rand.nextInt(1000)]);
 		graph.commit();
 		st.stop();
 		TitanBenchmark.printTime(st.toString());
+		System.out.println("Node Property added for Node : "+v);
 		return true;
 	}
 
 	public boolean getNodeProperty(String nodeId){
+		System.out.println("NodeId refered: " + nodeId );
 		//Iterator<Vertex> v_itr=graph.query().has("userid",Compare.EQUAL,nodeId).vertices().iterator();
 		Vertex v=getVertex(nodeId);
 		StopWatch st=new StopWatch();
 		st.start();
-		String prop=(String)v.getProperty("userid");
+		String prop=(String)v.getProperty("nproperty");
 		graph.commit();
 		st.stop();
 		TitanBenchmark.printTime(st.toString());
@@ -111,6 +117,7 @@ public class TitanMicroBenchmarks {
 	}
 
 	public boolean deleteNodeProperty(String nodeId){
+		System.out.println("NodeId refered: " + nodeId );
 		//Iterator<Vertex> v_itr=graph.query().has("userid",Compare.EQUAL,nodeId).vertices().iterator();
 		Vertex v=getVertex(nodeId);
 		StopWatch st=new StopWatch();
@@ -123,6 +130,7 @@ public class TitanMicroBenchmarks {
 		return true;
 	}
 	public boolean updateNodeProperty(String nodeId){
+		System.out.println("NodeId refered: " + nodeId );
 		//Iterator<Vertex> v_itr=graph.query().has("userid",Compare.EQUAL,nodeId).vertices().iterator();
 		Vertex v=getVertex(nodeId);
 		StopWatch st=new StopWatch();
@@ -137,6 +145,7 @@ public class TitanMicroBenchmarks {
 
 
 	public boolean addEdge(String[] nodes){
+		System.out.println("Nodes refered: " + nodes[0]+" and "+nodes[1] );
 		//Iterator<Vertex> v1_itr=graph.query().has("userid",Compare.EQUAL,nodes[0]).vertices().iterator();
 		Vertex v1=getVertex(nodes[0]);
 		//Iterator<Vertex> v2_itr=graph.query().has("userid",Compare.EQUAL,nodes[1]).vertices().iterator();
@@ -156,6 +165,7 @@ public class TitanMicroBenchmarks {
 	}
 
 	public boolean getEdge(String[] nodes){
+		System.out.println("Nodes refered: " + nodes[0]+" and "+nodes[1] );
 		//Iterator<Vertex> v1_itr=graph.query().has("userid",Compare.EQUAL,nodes[0]).vertices().iterator();
 		Vertex v1=getVertex(nodes[0]);
 		//Iterator<Vertex> v2_itr=graph.query().has("userid",Compare.EQUAL,nodes[1]).vertices().iterator();
@@ -172,6 +182,7 @@ public class TitanMicroBenchmarks {
 
 	}
 	public boolean deleteEdge(String[] nodes){
+		System.out.println("Nodes refered: " + nodes[0]+" and "+nodes[1] );
 		Edge e=getEdge(getVertex(nodes[0]), getVertex(nodes[1]));
 		StopWatch st=new StopWatch();
 		st.start();
@@ -189,6 +200,7 @@ public class TitanMicroBenchmarks {
 
 
 	public boolean addEdgeProperty(String[] nodes){
+		System.out.println("Nodes refered: " + nodes[0]+" and "+nodes[1] );
 		Edge e=getEdge(getVertex(nodes[0]), getVertex(nodes[1]));
 		e.removeProperty("eproperty");
 		StopWatch st=new StopWatch();
@@ -201,8 +213,9 @@ public class TitanMicroBenchmarks {
 		return true;
 	}
 	public boolean getEdgeProperty(String[] nodes){
+		System.out.println("Nodes refered: " + nodes[0]+" and "+nodes[1] );
 		Edge e=getEdge(getVertex(nodes[0]), getVertex(nodes[1]));
-		
+
 		StopWatch st=new StopWatch();
 		st.start();
 		String prop=(String)e.getProperty("eproperty");
@@ -214,8 +227,9 @@ public class TitanMicroBenchmarks {
 		return true;
 	}
 	public boolean deleteEdgeProperty(String[] nodes){
+		System.out.println("Nodes refered: " + nodes[0]+" and "+nodes[1] );
 		Edge e=getEdge(getVertex(nodes[0]), getVertex(nodes[1]));
-		
+
 		StopWatch st=new StopWatch();
 		st.start();
 		e.removeProperty("eproperty");
@@ -228,6 +242,7 @@ public class TitanMicroBenchmarks {
 
 	}
 	public boolean updateEdgeProperty(String[] nodes){
+		System.out.println("Nodes refered: " + nodes[0]+" and "+nodes[1] );
 		Edge e=getEdge(getVertex(nodes[0]), getVertex(nodes[1]));
 		StopWatch st=new StopWatch();
 		st.start();
@@ -244,7 +259,14 @@ public class TitanMicroBenchmarks {
 
 	public Vertex getVertex(String nodeId){
 		Iterator<Vertex> v1_itr=graph.query().has("userid",Compare.EQUAL,nodeId).vertices().iterator();
-		return v1_itr.next();
+		if(v1_itr.hasNext())
+			return v1_itr.next();
+		else{
+			String node=TitanBenchmark.getRandomNode();
+			System.out.println("Vertex unavailable for Node : "+nodeId+" Using NodeId : "+node);
+			return getVertex(node);
+		}
+			
 	}
 
 	public Edge getEdge(Vertex v1, Vertex v2){
@@ -252,7 +274,7 @@ public class TitanMicroBenchmarks {
 		Edge e=null;
 		while(edges.hasNext()){
 			e=edges.next();
-			if(e.getVertex(Direction.OUT).equals(v2))
+			if(e.getVertex(Direction.IN).equals(v2))
 				break;
 		}
 		return e;

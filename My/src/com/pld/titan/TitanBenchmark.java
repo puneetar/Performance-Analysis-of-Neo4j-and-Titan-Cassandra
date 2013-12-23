@@ -51,103 +51,120 @@ public class TitanBenchmark {
 	public final static String BENCHMARKING_PROPERTIES="src/com/pld/titan/benchMarking_titan-cassandra-es.properties";
 	public static HashMap<String,HashSet<String>> currentBenchmarkData;
 	static Random random = new Random();
-	
+
 	public static void main(String args[]){
 		Scanner in=new Scanner(System.in);
 		currentBenchmarkData=loadNewRandomBenchmarkData(100);
+		System.out.println("\n Getting connection to Database...");
 		TitanMicroBenchmarks microBenchmark=new TitanMicroBenchmarks(getGraph(BENCHMARKING_PROPERTIES, false));
-		
+
 		while(true){
 			System.out.println("\nEnter your choice:\n");
-			System.out.println("0. Bulk Load Data \n "
-					+ "1. Add node\n "
-					+ "2. Get node \n "
-					+ "3. Add Node Property\n "
-					+ "4. Get Node Property \n "
-					+ "5. Add edge\n "
-					+ "6. Get Edge\n "
-					+ "7. Remove node\n"
-					+ "8. Remove Node Property\n "
-					+ "9. Remove Edge \n "
-					+ "10. Remove Edge Property\n "
-					+ "11. Add edge property\n");
-			
+			System.out.println(
+					"0. Bulk Load Data \n "
+							+ "1. Add node\n "
+							+ "2. Get node \n "
+							+ "3. Delete Node\n "
+							+ "4. Update Node \n "
+							+ "5. Add node Property\n "
+							+ "6. Get node Property\n "
+							+ "7. Delete Node Property\n "
+							+ "8. Update Node Property\n "
+							+ "9. Add Edge\n "
+							+ "10. Get Edge \n "
+							+ "11. Delete Edge\n "
+							+ "12. Update Edge \n "
+							+ "13. Add Edge Property\n "
+							+ "14. Get Edge Property\n "
+							+ "15. Delete Edge Property\n "
+							+ "16. Update Edge Property\n "
+							+ "q. Quit / Exit"
+
+					);
+
 			String input=in.nextLine();
-			int choice;
+			if(input.equalsIgnoreCase("q"))
+				break;
+
+			int choice = -1;
 			try {
 				choice = Integer.parseInt(input);
 			} catch (NumberFormatException e) {
 				System.out.println("Invalid Input : NumberFormatException\n\n");
-				break;
+				//break;
 			}
 
-			
 
-			switch(choice){
-			case 0:
-				BatchGraphImpl.batchLoadData(BACTH_LOAD_PROPERTIES,INPUT_CSV_FILE);
-				break;
-
-
-			case 1:
-				microBenchmark.addNode();
-				break;
-			case 2: 
-				microBenchmark.getNode(getRandomNode());
-				break;
-			case 3: 
-				microBenchmark.deleteNode(getRandomNode());
-				break;
-			case 4: 
-				microBenchmark.updateNode(getRandomNode());
-				break;
+			try{
+				switch(choice){
+				case 0:
+					BatchGraphImpl.batchLoadData(BACTH_LOAD_PROPERTIES,INPUT_CSV_FILE);
+					break;
 
 
-			case 5:
-				microBenchmark.addNodeProperty(getRandomNode());
-				break;
-			case 6: 
-				microBenchmark.getNodeProperty(getRandomNode());
-				break;
-			case 7: 
-				microBenchmark.deleteNodeProperty(getRandomNode());
-				break;
-			case 8: 
-				microBenchmark.updateNodeProperty(getRandomNode());
-				break;
+				case 1:
+					microBenchmark.addNode();
+					break;
+				case 2: 
+					microBenchmark.getNode(getRandomNode());
+					break;
+				case 3: 
+					microBenchmark.deleteNode(getRandomNode());
+					break;
+				case 4: 
+					microBenchmark.updateNode(getRandomNode());
+					break;
 
 
-			case 9:
-				microBenchmark.addEdge(new String[]{getRandomNode(),getRandomNode()});
-				break;
-			case 10: 
-				microBenchmark.getEdge(getTwoRelatedNodes());
-				break;
-			case 12: 
-				microBenchmark.deleteEdge(getTwoRelatedNodes());
-				break;
-			case 13: 
-				microBenchmark.updateEdge(getTwoRelatedNodes());
-				break;
+				case 5:
+					microBenchmark.addNodeProperty(getRandomNode());
+					break;
+				case 6: 
+					microBenchmark.getNodeProperty(getRandomNode());
+					break;
+				case 7: 
+					microBenchmark.deleteNodeProperty(getRandomNode());
+					break;
+				case 8: 
+					microBenchmark.updateNodeProperty(getRandomNode());
+					break;
 
 
-			case 14:
-				microBenchmark.addEdgeProperty(getTwoRelatedNodes());
-				break;
-			case 15: 
-				microBenchmark.getEdgeProperty(getTwoRelatedNodes());
-				break;
-			case 16: 
-				microBenchmark.deleteEdgeProperty(getTwoRelatedNodes());
-				break;
-			case 17: 
-				microBenchmark.updateEdgeProperty(getTwoRelatedNodes());
-				break;
+				case 9:
+					microBenchmark.addEdge(new String[]{getRandomNode(),getRandomNode()});
+					break;
+				case 10: 
+					microBenchmark.getEdge(getTwoRelatedNodes());
+					break;
+				case 11: 
+					microBenchmark.deleteEdge(getTwoRelatedNodes());
+					break;
+				case 12: 
+					microBenchmark.updateEdge(getTwoRelatedNodes());
+					break;
 
 
-			default:
-				System.out.println("Invalid Input\n\n");
-				break;
+				case 13:
+					microBenchmark.addEdgeProperty(getTwoRelatedNodes());
+					break;
+				case 14: 
+					microBenchmark.getEdgeProperty(getTwoRelatedNodes());
+					break;
+				case 15: 
+					microBenchmark.deleteEdgeProperty(getTwoRelatedNodes());
+					break;
+				case 16: 
+					microBenchmark.updateEdgeProperty(getTwoRelatedNodes());
+					break;
+
+
+				default:
+					System.out.println("Invalid Input\n\n");
+					break;
+				}
+			}
+			catch(Exception e){
+				e.printStackTrace();
 			}
 		}
 	}
@@ -168,9 +185,9 @@ public class TitanBenchmark {
 
 	public static HashMap<String,HashSet<String>> loadNewRandomBenchmarkData(int numOfDataLoaded){
 		System.out.println("Loading Data:\n---------------------");
-		if(numOfDataLoaded==0 || numOfDataLoaded>100){
-			numOfDataLoaded=100;
-		}
+		//	if(numOfDataLoaded==0 || numOfDataLoaded>100){
+		numOfDataLoaded=1000;
+		//	}
 
 		HashMap<String,HashSet<String>> hmp_data=new HashMap<String,HashSet<String>>();
 		FileReader fr;
@@ -185,7 +202,7 @@ public class TitanBenchmark {
 			while((line=br.readLine())!=null && hmp_data.size()<=numOfDataLoaded) {
 				if(i++==j){
 					arr_token=line.split(" ");	
-					j=j+numOfDataLoaded;	
+					j=j+random.nextInt(1000);	
 					System.out.println(line);
 					if(hmp_data.containsKey(arr_token[0])){
 						HashSet<String> hst=hmp_data.get(arr_token[0]);
@@ -214,7 +231,7 @@ public class TitanBenchmark {
 		if(currentBenchmarkData==null || currentBenchmarkData.size()==0)
 			currentBenchmarkData=loadNewRandomBenchmarkData(0);
 
-		
+
 		List<String> keys = new ArrayList<String>(currentBenchmarkData.keySet());
 		String randomKey = keys.get( random.nextInt(keys.size()) );
 		//HashSet<String> value = currentBenchmarkData.get(randomKey);
@@ -225,7 +242,7 @@ public class TitanBenchmark {
 		if(currentBenchmarkData==null || currentBenchmarkData.size()==0)
 			currentBenchmarkData=loadNewRandomBenchmarkData(0);
 
-		
+
 		List<String> keys = new ArrayList<String>(currentBenchmarkData.keySet());
 		String randomKey = keys.get( random.nextInt(keys.size()) );
 		List<String> setOfValue = new ArrayList<String>(currentBenchmarkData.get(randomKey));
@@ -233,7 +250,7 @@ public class TitanBenchmark {
 
 		return new String[]{randomKey,value};
 	}
-	
+
 	public static void printTime(String st){
 		System.out.println("Time Taken : "+st);
 	}
