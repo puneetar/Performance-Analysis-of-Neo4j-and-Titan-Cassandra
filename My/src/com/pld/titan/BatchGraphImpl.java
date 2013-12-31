@@ -43,10 +43,9 @@ public class BatchGraphImpl {
 		//		index.setProperty(STORAGE_DIRECTORY_KEY, "db/es");
 
 		TitanGraph graph=TitanBenchmark.getGraph(propertiesFile, true);
-		TitanCleanup.clear(graph);
-		System.out.println("cleanup done");
+		
 		try {
-			Thread.currentThread().sleep(60000);
+			Thread.currentThread().sleep(10000);
 		} catch (InterruptedException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

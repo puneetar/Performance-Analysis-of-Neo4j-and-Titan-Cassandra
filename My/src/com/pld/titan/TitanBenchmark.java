@@ -49,6 +49,8 @@ public class TitanBenchmark {
 	public final static String INPUT_CSV_FILE="/home/pld6/git/My/My/facebook-sg/newaa";
 	public final static String BACTH_LOAD_PROPERTIES="src/com/pld/titan/bachLoading_titan-cassandra-es.properties";
 	public final static String BENCHMARKING_PROPERTIES="src/com/pld/titan/benchMarking_titan-cassandra-es.properties";
+	public final static String NODE_PROPERTY="nproperty";
+	public final static String EDGE_PROPERTY="eproperty";
 	public static HashMap<String,HashSet<String>> currentBenchmarkData;
 	static Random random = new Random();
 
