@@ -9,6 +9,7 @@ import org.apache.cassandra.cli.CliParser.newColumnFamily_return;
 import org.apache.commons.lang.time.StopWatch;
 
 import com.thinkaurelius.titan.core.TitanGraph;
+import com.thinkaurelius.titan.core.util.TitanCleanup;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph;
@@ -42,6 +43,14 @@ public class BatchGraphImpl {
 		//		index.setProperty(STORAGE_DIRECTORY_KEY, "db/es");
 
 		TitanGraph graph=TitanBenchmark.getGraph(propertiesFile, true);
+		TitanCleanup.clear(graph);
+		System.out.println("cleanup done");
+		try {
+			Thread.currentThread().sleep(60000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		BatchGraph<TitanGraph> bgraph = new BatchGraph<TitanGraph>(graph, VertexIDType.STRING, 1000);
 		//bgraph.setLoadingFromScratch(false);
 		//BatchGraph bgraph = BatchGraph.wrap(graph);
@@ -59,7 +68,7 @@ public class BatchGraphImpl {
 			Edge edge;
 			int j=1;
 			int k=500000;
-			long startTime = System.currentTimeMillis();
+			
 			StopWatch st =new StopWatch();
 			st.start();
 			while((line=br.readLine())!=null) {
@@ -88,8 +97,9 @@ public class BatchGraphImpl {
 					//edge.setProperty("eproperty",arr_prop_edge[new Random().nextInt(1000)]);
 				}
 			}
-			bgraph.commit();
-			graph.commit();
+			bgraph.commit();	graph.commit();
+			br.close();		fr.close();
+			
 			st.stop();
 			System.out.println("Time taken : " + st.toString());
 		} catch (IOException e) {
