@@ -203,6 +203,7 @@ public class EmbeddedNeo4j {
 	}
 	Scanner in=new Scanner(System.in);
 	Microbenchmarks mb= new Microbenchmarks();
+	MacroBenchmarks mab= new MacroBenchmarks();
 	private void benchmarks() throws IOException{
 		int choice;
 
@@ -356,14 +357,29 @@ public class EmbeddedNeo4j {
 				break;
 
 			}
-			case 17:
-				MacroBenchmarks mab= new MacroBenchmarks();
+			case 17:{
+				String nodeId= getRandomNode();
+				System.out.println("Node Id:"+nodeId);
+				System.out.println("Enter depth");
+				input=in.nextLine();
+				String filter="";
+				mab.get_neighbors(nodeId, filter);
+				break;
+			}
+			case 18:{
+
 				String nodeId= getRandomNode();
 				System.out.println("Node Id:"+nodeId);
 				System.out.println("Enter depth");
 				input=in.nextLine();
 				mab.k_hop_neighbors(nodeId, Integer.parseInt(input));
+				break;
 			}
+			case 19:
+				String filter="";
+				mab.select_nodes(filter);
+			}
+
 		}
 
 	}
