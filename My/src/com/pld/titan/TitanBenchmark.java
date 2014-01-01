@@ -46,8 +46,8 @@ import static com.thinkaurelius.titan.graphdb.configuration.GraphDatabaseConfigu
 public class TitanBenchmark {
 
 	//public static final String INDEX_NAME = "search";
-	public final static String INPUT_CSV_FILE="/home/pld6/git/My/My/facebook-sg/newaa";
-	public final static String BACTH_LOAD_PROPERTIES="src/com/pld/titan/bachLoading_titan-cassandra-es.properties";
+	public final static String INPUT_CSV_FILE="/home/pld6/git/My/My/facebook-sg/newfull";
+	public final static String BACTH_LOAD_PROPERTIES="src/com/pld/titan/batchLoading_titan-cassandra-es.properties";
 	public final static String BENCHMARKING_PROPERTIES="src/com/pld/titan/benchMarking_titan-cassandra-es.properties";
 	public final static String NODE_PROPERTY="nproperty";
 	public final static String EDGE_PROPERTY="eproperty";
@@ -58,7 +58,10 @@ public class TitanBenchmark {
 		Scanner in=new Scanner(System.in);
 		currentBenchmarkData=loadNewRandomBenchmarkData(100);
 		System.out.println("\n Getting connection to Database...");
-		TitanMicroBenchmarks microBenchmark=new TitanMicroBenchmarks(getGraph(BENCHMARKING_PROPERTIES, false));
+		TitanGraph graph=getGraph(BENCHMARKING_PROPERTIES, false);
+		TitanMicroBenchmarks microBenchmark=new TitanMicroBenchmarks(graph);
+		TitanMacroBenchmarks macroBenchmark=new TitanMacroBenchmarks(graph);
+		
 
 		while(true){
 			System.out.println("\nEnter your choice:\n");
@@ -80,6 +83,10 @@ public class TitanBenchmark {
 							+ "14. Get Edge Property\n "
 							+ "15. Delete Edge Property\n "
 							+ "16. Update Edge Property\n "
+							+ "17. Get Nodes With Filter\n "
+							+ "18. Get Edges with Filter\n "
+							+ "19. K hop traversal\n "
+							+ "20. Dijkstra Shorest Path Algo\n "
 							+ "q. Quit / Exit"
 
 					);
@@ -159,7 +166,23 @@ public class TitanBenchmark {
 					microBenchmark.updateEdgeProperty(getTwoRelatedNodes());
 					break;
 
-
+					
+				case 17: 
+					macroBenchmark.getNodesWithFilter();
+					break;
+				case 18: 
+					macroBenchmark.getEdgesWithFilter();
+					break;
+				case 19: 
+					macroBenchmark.getKHopNeighbours(2);
+					break;
+				
+				case 20:
+					DijkstraAlgorithm dijkstraAlgorithm = new DijkstraAlgorithm(graph);
+					dijkstraAlgorithm.getShortestPath(getRandomNode(), getRandomNode());
+					break;
+			
+					
 				default:
 					System.out.println("Invalid Input\n\n");
 					break;
