@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import org.apache.commons.lang.time.StopWatch;
 import org.apache.velocity.runtime.directive.Evaluate;
 import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
@@ -25,10 +26,11 @@ public class MacroBenchmarks {
 	Node node,pathNode;
 
 	public void k_hop_neighbors(String nodeId, int k){
-		HashSet<String> hst= new HashSet<String>();
+		StopWatch watch=new StopWatch();
+		String output = null;
 		try ( Transaction tx = EmbeddedNeo4j.graphDb.beginTx() ){
 			node=EmbeddedNeo4j.index.get("id", nodeId).getSingle();
-			String output = null;
+			watch.start();
 			TraversalDescription td = Traversal.description()
 					.depthFirst()
 					.relationships( RelTypes.KNOWS, Direction.BOTH )
@@ -42,8 +44,10 @@ public class MacroBenchmarks {
 					output += currnode.getProperty( "id" ) + "\n";
 
 				}
+			watch.stop();
 			//output += "Number of friends found: " + numberOfFriends + "\n";
 			System.out.println(output);
+			System.out.println("Total time taken for getting edge is :"+watch.getTime()+" milliseconds");
 			tx.success();
 		}
 	}
@@ -53,8 +57,11 @@ public class MacroBenchmarks {
 	public ArrayList<Node> select_nodes(String filter){
 		//		String output="";
 		ArrayList<Node> arls= new ArrayList<Node>();
+		StopWatch watch=new StopWatch();
+		GlobalGraphOperations gb=GlobalGraphOperations.at(EmbeddedNeo4j.graphDb);
 		try ( Transaction tx = EmbeddedNeo4j.graphDb.beginTx() ){
-			GlobalGraphOperations gb=GlobalGraphOperations.at(EmbeddedNeo4j.graphDb);
+			watch.start();
+			
 			Iterable<Node> itnode=gb.getAllNodes();
 			Iterator<Node> itrNode= itnode.iterator();
 			node=itrNode.next();
@@ -66,8 +73,10 @@ public class MacroBenchmarks {
 					arls.add(node);
 				}
 			}
+			watch.stop();
 			tx.success();
 		}
+		System.out.println("Total time taken for getting edge is :"+watch.getTime()+" milliseconds");
 		return arls;
 	}
 	public ArrayList<String> get_neighbors(String nodeId, String filter){
@@ -82,16 +91,18 @@ public class MacroBenchmarks {
 			}
 			tx.success();
 		}
+		//System.out.println("Total time taken for getting edge is :"+watch.getTime()+" milliseconds");
 		return arls;
 	}
 	public ArrayList<Relationship> getEdges(final String filter){
+		StopWatch watch=new StopWatch();
 		ArrayList<Relationship> arls= new ArrayList<Relationship>();
 		Relationship rel;
 		Iterator<Relationship> itr;
 		Iterable<Relationship> itrel;
 		GlobalGraphOperations gb=GlobalGraphOperations.at(EmbeddedNeo4j.graphDb);
 		try ( Transaction tx = EmbeddedNeo4j.graphDb.beginTx() ){
-			
+			watch.start();
 			itrel=gb.getAllRelationships();
 			itr=itrel.iterator();
 			while(itr.hasNext()){
@@ -100,9 +111,11 @@ public class MacroBenchmarks {
 				if(prop.contains(filter))
 					arls.add(itr.next());
 			}
+			watch.stop();
 			tx.success();
 		}
 		System.out.println(arls.size());
+		System.out.println("Total time taken for getting edge is :"+watch.getTime()+" milliseconds");
 		return arls;
 	}
 }
