@@ -79,7 +79,7 @@ public class EmbeddedNeo4j {
 	HashMap<String, String> hmp= new HashMap<>();
 	public static HashMap<String,HashSet<String>> currentBenchmarkData;
 	static Random random = new Random();
-	public static int nodeAdded=5000030;
+	public static int nodeAdded=5000001;
 
 	public static enum RelTypes implements RelationshipType
 	{
@@ -228,163 +228,202 @@ public class EmbeddedNeo4j {
 			case 1:{
 				//				System.out.println("Enter node id to be added:");
 				//				String nodeId3=in.nextLine();
+				for( int i=0;i<20;i++){
 				String nodeId=Integer.toString(nodeAdded+1);
 				System.out.println("Node id:"+nodeId);
 				mb.addSingleNode(nodeId);
+				}
 				break;
 			}
 			case 2: {
+				for( int i=0;i<20;i++){
 				String nodeId=getRandomNode();
 				System.out.println("Node is:"+nodeId);
 				Node node=mb.getNode(nodeId);
-				try ( Transaction tx = graphDb.beginTx() ){
-					if(node!=null){
-						System.out.println(node.getProperty("id"));
-						System.out.println(node.getProperty("nproperty"));
-						tx.success();
-					}
-					else
-						System.out.println("node not found");
 				}
+//				try ( Transaction tx = graphDb.beginTx() ){
+//					if(node!=null){
+//						System.out.println(node.getProperty("id"));
+//						System.out.println(node.getProperty("nproperty"));
+//						tx.success();
+//					}
+//					else
+//						System.out.println("node not found");
+//				}
 
 				break;
 			}
 
 			case 3:{ 
+				for( int i=0;i<20;i++){
 				String nodeId=Integer.toString(nodeAdded++);
 				System.out.println("Node is:"+nodeId);
 				mb.addNodeProperty(nodeId);
+				}
 				break;
 			}
 			case 4: {
+				for( int i=0;i<20;i++){
 				String nodeId=getRandomNode();
 				System.out.println("Node is:"+nodeId);
 				String prop=mb.getNodeProperty(nodeId);
 				System.out.println("Property is "+prop);
+				}
 				break;
 			}
 			case 5: {
+				for( int i=0;i<20;i++){
 				String nodeId1=getRandomNode();
 				String nodeId2=getRandomNode();
 				System.out.println("Node1 is:"+nodeId1);
 				System.out.println("Node2 is:"+nodeId2);
 				mb.addRelationship(nodeId1, nodeId2);
+				}
 				break;
 			}
 
 			case 6: {
+				for( int i=0;i<20;i++){
 				String[] nodes=getTwoRelatedNodes();
 				System.out.println("Node 1 is:"+nodes[0]);
 				System.out.println("Node 2 is:"+nodes[1]);
 
 				rel=mb.getRelationship(nodes[0],nodes[1]);
-				try ( Transaction tx = graphDb.beginTx() ){
-					System.out.println("Relationship is :"+ rel.getProperty("eproperty"));
-					tx.success();
+//				try ( Transaction tx = graphDb.beginTx() ){
+//					System.out.println("Relationship is :"+ rel.getProperty("eproperty"));
+//					tx.success();
+//				}
 				}
 				break;
 			}
 
 			case 7: {
+				for( int i=0;i<20;i++){
 				String nodeId=getRandomNode();
 				System.out.println("Node Id:"+nodeId);
 				mb.removeNode(nodeId);
+				}
 				break;
 			}
 			case 8:{ 
+				for( int i=0;i<20;i++){
 				String nodeId=getRandomNode();
 				System.out.println("Node Id:"+nodeId);
 				mb.removeNodeProperty(nodeId);
+				}
 				break;
 			}
 			case 9:{ 
+				for( int i=0;i<20;i++){
 				String[] nodes=getTwoRelatedNodes();
 				System.out.println("Node 1 is:"+nodes[0]);
 				System.out.println("Node 2 is:"+nodes[1]);
 				mb.removeRelationship(nodes[0], nodes[1]);
+				}
 				break;
+				
 			}
 			case 10:{
+				for( int i=0;i<20;i++){
 				String[] nodes=getTwoRelatedNodes();
 				System.out.println("Node 1 is:"+nodes[0]);
 				System.out.println("Node 2 is:"+nodes[1]);
 				mb.removeEdgeProperty(nodes[0],nodes[1]);
+				}
 				break;
 			}
 			case 11: {
+				for( int i=0;i<20;i++){
 				String[] nodes=getTwoRelatedNodes();
 				System.out.println("Node 1 is:"+nodes[0]);
 				System.out.println("Node 2 is:"+nodes[1]);
 				mb.addEdgeProperty(nodes[0], nodes[1]);
+				}
 				break;
 			}
 			case 12:{
+				for( int i=0;i<20;i++){
 				String nodeId=getRandomNode();
 				System.out.println("Node Id:"+nodeId);
 				valueNode=arr_prop_node[new Random().nextInt(1000)];
 				mb.updateNode(nodeId,valueNode);
+				}
 				break;
 			}
 			case 13:{
+				for( int i=0;i<20;i++){
 				String nodeId=getRandomNode();
 				System.out.println("Node Id:"+nodeId);
 				valueNode=arr_prop_node[new Random().nextInt(1000)];
 				mb.updateNodeProperty(nodeId,valueNode);
+				}
 				break;
 			}
 			case 14:{
+				for( int i=0;i<20;i++){
 				String[] nodes=getTwoRelatedNodes();
 				System.out.println("Node 1 is:"+nodes[0]);
 				System.out.println("Node 2 is:"+nodes[1]);
 				valueEdge=arr_prop_edge[new Random().nextInt(1000)];
 				mb.updateEdge(nodes[0],nodes[1],valueEdge);
+				}
 				break;
 			}
 			case 15:{
+				for( int i=0;i<20;i++){
 				String[] nodes=getTwoRelatedNodes();
 				System.out.println("Node 1 is:"+nodes[0]);
 				System.out.println("Node 2 is:"+nodes[1]);
 				String prop=mb.getEdgeProperty(nodes[0],nodes[1]);
 				System.out.println("Edge property is:"+ prop);
+				}
 				break;
 
 			}
 			case 16:{
+				for( int i=0;i<20;i++){
 				String[] nodes=getTwoRelatedNodes();
 				System.out.println("Node 1 is:"+nodes[0]);
 				System.out.println("Node 2 is:"+nodes[1]);
 				valueEdge=arr_prop_edge[new Random().nextInt(1000)];
 				mb.updateEdgeProperty(nodes[0],nodes[1], valueEdge);
+				}
 				break;
 
 			}
 			case 17:{
-
-				String filter="3";
+				for( int i=0;i<20;i++){
+				String filter="343";
 				//mab.get_neighbors(nodeId, filter);
 				mab.getEdges(filter);
+				}
 				break;
 			}
 			case 18:{
-
+				for( int i=0;i<20;i++){
 				String nodeId= getRandomNode();
 				System.out.println("Node Id:"+nodeId);
 				System.out.println("Enter depth");
 				input=in.nextLine();
 				mab.k_hop_neighbors(nodeId, Integer.parseInt(input));
+				}
 				break;
 			}
 			case 19:{
-				String filter="34";
+				for( int i=0;i<20;i++){
+				String filter="343";
 				mab.select_nodes(filter);
+				}
 			}
 			case 20:{
+				for( int i=0;i<20;i++){
 				String nodeId1= getRandomNode();
 				String nodeId2= getRandomNode();
 				System.out.println("Node 1 is:"+nodeId1);
 				System.out.println("Node 2 is:"+nodeId2);
 				algo.shortestPath1(nodeId1, nodeId2);
-				algo.shortestPath(nodeId1, nodeId2);
+				}
+				//algo.shortestPath(nodeId1, nodeId2);
 			}
 
 			}
