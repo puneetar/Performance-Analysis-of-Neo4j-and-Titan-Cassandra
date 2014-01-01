@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import org.apache.commons.lang.time.StopWatch;
 import org.apache.velocity.runtime.directive.Evaluate;
 import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
@@ -25,10 +26,12 @@ public class MacroBenchmarks {
 	Node node,pathNode;
 
 	public void k_hop_neighbors(String nodeId, int k){
-		HashSet<String> hst= new HashSet<String>();
+		StopWatch watch=new StopWatch();
+		String output = null;
+		int count=0;
 		try ( Transaction tx = EmbeddedNeo4j.graphDb.beginTx() ){
 			node=EmbeddedNeo4j.index.get("id", nodeId).getSingle();
-			String output = null;
+			watch.start();
 			TraversalDescription td = Traversal.description()
 					.depthFirst()
 					.relationships( RelTypes.KNOWS, Direction.BOTH )
@@ -39,36 +42,52 @@ public class MacroBenchmarks {
 			if(traverser!=null)
 				for ( Node currnode  : traverser.nodes())
 				{
-					output += currnode.getProperty( "id" ) + "\n";
+					count++;
+					///output += currnode.getProperty( "id" ) + "\n";
 
 				}
+			watch.stop();
 			//output += "Number of friends found: " + numberOfFriends + "\n";
-			System.out.println(output);
+
 			tx.success();
 		}
+		//System.out.println(output);
+		System.out.println("number of nodes returned:"+count);
+		System.out.println("Total time taken for getting k-hop neighbors is :"+watch.getTime()+" milliseconds");
 	}
 	public void k_hop_neighbors1(String nodeId, int k){
 
 	}
-	public ArrayList<Node> select_nodes(String filter){
-		//		String output="";
+	public void select_nodes(String filter){
+		String output="";
 		ArrayList<Node> arls= new ArrayList<Node>();
+		StopWatch watch=new StopWatch();
+		GlobalGraphOperations gb=GlobalGraphOperations.at(EmbeddedNeo4j.graphDb);
+		Iterable<Node> itnode;
+		Iterator<Node> itrNode;
+		int count=0;
 		try ( Transaction tx = EmbeddedNeo4j.graphDb.beginTx() ){
-			GlobalGraphOperations gb=GlobalGraphOperations.at(EmbeddedNeo4j.graphDb);
-			Iterable<Node> itnode=gb.getAllNodes();
-			Iterator<Node> itrNode= itnode.iterator();
+			watch.start();
+
+			itnode=gb.getAllNodes();
+			itrNode= itnode.iterator();
 			node=itrNode.next();
 			while(itrNode.hasNext()){
 				node=itrNode.next();
 				String prop=(String) node.getProperty("nproperty");
 				if(prop.contains(filter)){
-					System.out.println(node.getProperty("id")+":"+prop);
-					arls.add(node);
+					//System.out.println(node.getProperty("id")+":"+prop);
+					//output +=node.getProperty("id") +"/n";
+					///arls.add(node);
+					count++;
 				}
 			}
+			watch.stop();
 			tx.success();
 		}
-		return arls;
+		//System.out.println(output);
+		System.out.println("number of nodes selected:"+count);
+		System.out.println("Total time taken for getting nodes with filter is :"+watch.getTime()+" milliseconds");
 	}
 	public ArrayList<String> get_neighbors(String nodeId, String filter){
 		//k_hop_neighbors(nodeId, 1);
@@ -82,27 +101,37 @@ public class MacroBenchmarks {
 			}
 			tx.success();
 		}
+		//System.out.println("Total time taken for getting edge is :"+watch.getTime()+" milliseconds");
 		return arls;
 	}
-	public ArrayList<Relationship> getEdges(final String filter){
+	public void getEdges(final String filter){
+		String output="";
+		StopWatch watch=new StopWatch();
 		ArrayList<Relationship> arls= new ArrayList<Relationship>();
 		Relationship rel;
 		Iterator<Relationship> itr;
 		Iterable<Relationship> itrel;
 		GlobalGraphOperations gb=GlobalGraphOperations.at(EmbeddedNeo4j.graphDb);
+		int count=0;
+		String prop;
 		try ( Transaction tx = EmbeddedNeo4j.graphDb.beginTx() ){
-			
+			watch.start();
 			itrel=gb.getAllRelationships();
 			itr=itrel.iterator();
 			while(itr.hasNext()){
 				rel=itr.next();
-				String prop=(String) rel.getProperty("eproperty");
+				prop=(String) rel.getProperty("eproperty");
 				if(prop.contains(filter))
-					arls.add(itr.next());
+					//output+=prop+"\n";
+					count++;
+				//arls.add(itr.next());
 			}
+			watch.stop();
+
 			tx.success();
 		}
-		System.out.println(arls.size());
-		return arls;
+		System.out.println("\nvalues returned:"+ count);
+		System.out.println("Total time taken for getting edges with filter is :"+watch.getTime()+" milliseconds");
+		//	return arls;
 	}
 }
