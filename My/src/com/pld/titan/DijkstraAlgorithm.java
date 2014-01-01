@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.commons.lang.time.StopWatch;
+
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
@@ -41,15 +43,22 @@ public class DijkstraAlgorithm {
 	public DijkstraAlgorithm(TitanGraph graph) {
 		this.graph=graph;
 		// create a copy of the array so that we can operate on this array
+		System.out.println("loading all vertices");
 		ArrayList<Vertex> arr_v=new ArrayList<Vertex>();
 		Iterator<Vertex> v1_itr=graph.getVertices().iterator();
+		
+		int i =0;
 		while(v1_itr.hasNext()){
+			System.out.print(i+++" ");
 			arr_v.add(v1_itr.next());
 		}
 
+		i=0;
+		System.out.println("loading all edges");
 		ArrayList<Edge> arr_e=new ArrayList<Edge>();
 		Iterator<Edge> e1_itr=graph.getEdges().iterator();
 		while(e1_itr.hasNext()){
+			System.out.print(i+++" ");
 			arr_e.add(e1_itr.next());
 		}
 		this.nodes = arr_v;
@@ -154,10 +163,20 @@ public class DijkstraAlgorithm {
 		return path;
 	}
 	
-	public LinkedList<Vertex> getShortestPath(Vertex source, Vertex target){
+	public LinkedList<Vertex> getShortestPath(String source, String target){
+		System.out.println("Nodes refered: " + source+" and "+target );
+		
+	    Vertex source1=TitanMicroBenchmarks.getVertex(source);
+	    Vertex target1=TitanMicroBenchmarks.getVertex(target);
+		
+	    StopWatch st=new StopWatch();
+		st.start();
 		DijkstraAlgorithm dijkstra = new DijkstraAlgorithm(graph);
-	    dijkstra.execute(source);
-	    LinkedList<Vertex> path = dijkstra.getPath(target);
+		dijkstra.execute(source1);
+	    LinkedList<Vertex> path = dijkstra.getPath(target1);
+	    st.stop();
+	    System.out.println(path);
+	    TitanBenchmark.printTime(st.toString());
 		return path;
 	}
 }

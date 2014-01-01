@@ -94,7 +94,9 @@ public class BatchGraphImpl {
 					}
 					edge = bgraph.addEdge(null,vertices[0],vertices[1],"KNOWS","eproperty",arr_prop_edge[new Random().nextInt(1000)]);
 					//edge.setProperty("eproperty",arr_prop_edge[new Random().nextInt(1000)]);
+					Thread.sleep(1);
 				}
+			
 			}
 			bgraph.commit();	graph.commit();
 			br.close();		fr.close();

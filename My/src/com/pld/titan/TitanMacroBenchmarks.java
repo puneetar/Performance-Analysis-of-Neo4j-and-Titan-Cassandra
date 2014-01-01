@@ -29,15 +29,15 @@ public class TitanMacroBenchmarks {
 	public TitanMacroBenchmarks(TitanGraph graph) {
 		this.graph=graph;
 	}
-
+	
 	public Iterator<Vertex> getNodesWithFilter(){
 		String filter_value="34";
 		Iterator<Vertex> v1_itr=graph.query().has(TitanBenchmark.NODE_PROPERTY,Text.CONTAINS,filter_value).vertices().iterator();
 		return v1_itr;
-
+		
 	}
-
-
+	
+	
 	public Iterator<Edge> getEdgesWithFilter(){
 		String filter_value="34";
 		Iterator<Edge> e1_itr=graph.query().has(TitanBenchmark.EDGE_PROPERTY,Text.CONTAINS,filter_value).edges().iterator();
