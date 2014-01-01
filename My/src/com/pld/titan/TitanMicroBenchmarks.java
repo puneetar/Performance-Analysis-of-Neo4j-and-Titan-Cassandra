@@ -14,7 +14,7 @@ import com.tinkerpop.blueprints.Vertex;
 
 public class TitanMicroBenchmarks {
 
-	private TitanGraph graph=null; 
+	private static TitanGraph graph=null; 
 	private final static String[] arr_prop_node=new String[1000];
 	private final static String[] arr_prop_edge=new String[1000];
 	public static int currentNodes;
@@ -82,6 +82,7 @@ public class TitanMicroBenchmarks {
 	}
 	
 	public boolean updateNode(String nodeId){
+		System.out.println("update Node is same as Update Node Property");
 		return updateNodeProperty(nodeId);
 	}
 
@@ -194,6 +195,7 @@ public class TitanMicroBenchmarks {
 		return true;
 	}
 	public boolean updateEdge(String[] nodes){
+		System.out.println("update Edge is same as Update Edge Property");
 		return updateEdgeProperty(nodes);		
 	}
 
@@ -257,7 +259,7 @@ public class TitanMicroBenchmarks {
 
 
 
-	public Vertex getVertex(String nodeId){
+	public static Vertex getVertex(String nodeId){
 		Iterator<Vertex> v1_itr=graph.query().has("userid",Compare.EQUAL,nodeId).vertices().iterator();
 		if(v1_itr.hasNext())
 			return v1_itr.next();
@@ -269,7 +271,7 @@ public class TitanMicroBenchmarks {
 			
 	}
 
-	public Edge getEdge(Vertex v1, Vertex v2){
+	public static Edge getEdge(Vertex v1, Vertex v2){
 		Iterator<Edge> edges=v1.getEdges(Direction.BOTH).iterator();
 		Edge e=null;
 		while(edges.hasNext()){
