@@ -54,7 +54,8 @@ public class TitanMacroBenchmarks {
 		return arls;
 	}
 
-	public boolean getKHopNeighbours(int k,Vertex v1){
+	public boolean getKHopNeighbours(int k,String startnode){
+		Vertex v1=TitanMicroBenchmarks.getVertex(startnode);
 		ArrayList<Vertex> arls=new ArrayList<Vertex>();
 		arls.add(v1);
 		Vertex v=v1;

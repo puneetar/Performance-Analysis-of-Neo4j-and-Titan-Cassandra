@@ -174,12 +174,12 @@ public class TitanBenchmark {
 					macroBenchmark.getEdgesWithFilter();
 					break;
 				case 19: 
-					macroBenchmark.getKHopNeighbours(2);
+					macroBenchmark.getKHopNeighbours(2,getRandomNode());
 					break;
 				
 				case 20:
-					DijkstraAlgorithm dijkstraAlgorithm = new DijkstraAlgorithm(graph);
-					dijkstraAlgorithm.getShortestPath(getRandomNode(), getRandomNode());
+			//		DijkstraAlgorithm dijkstraAlgorithm = new DijkstraAlgorithm(graph);
+					DijkstraAlgorithm.getShortestPath(getRandomNode(), getRandomNode());
 					break;
 			
 					

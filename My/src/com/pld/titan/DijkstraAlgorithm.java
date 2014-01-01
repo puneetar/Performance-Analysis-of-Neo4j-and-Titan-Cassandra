@@ -20,7 +20,7 @@ import com.tinkerpop.blueprints.Vertex;
 
 public class DijkstraAlgorithm {
 
-	private TitanGraph graph=null; 
+	private static TitanGraph graph=null; 
 	private final static String[] arr_prop_node=new String[1000];
 	private final static String[] arr_prop_edge=new String[1000];
 	public static int currentNodes;
@@ -163,7 +163,7 @@ public class DijkstraAlgorithm {
 		return path;
 	}
 	
-	public LinkedList<Vertex> getShortestPath(String source, String target){
+	public static LinkedList<Vertex> getShortestPath(String source, String target){
 		System.out.println("Nodes refered: " + source+" and "+target );
 		
 	    Vertex source1=TitanMicroBenchmarks.getVertex(source);
