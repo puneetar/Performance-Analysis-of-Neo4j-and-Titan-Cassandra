@@ -204,6 +204,7 @@ public class EmbeddedNeo4j {
 	Scanner in=new Scanner(System.in);
 	Microbenchmarks mb= new Microbenchmarks();
 	MacroBenchmarks mab= new MacroBenchmarks();
+	Algorithm algo=new Algorithm();
 	private void benchmarks() throws IOException{
 		int choice;
 
@@ -214,7 +215,7 @@ public class EmbeddedNeo4j {
 			System.out.println("1.Add node\n2.Get node\n3.Add Node Property\n4.Get Node Property\n5.Add edge\n6.Get Edge\n7.Remove node"
 					+ "\n 8.Remove Node Property\n9.Remove Edge\n10.Remove Edge Property\n11.Add edge property\n12. Update Node"
 					+ "\n13.Update Node Property\n14.Update Edge\n15.Get Edge Property\n16.Update Edge Property"
-					+"\n17.get k-hop neighbors");
+					+"\n17.get edges with filter\n18.get k-hop neighbors\n19 get nodes with filter\n20. Shortest Path");
 
 			String input=in.nextLine();
 			choice=Integer.parseInt(input);
@@ -358,12 +359,10 @@ public class EmbeddedNeo4j {
 
 			}
 			case 17:{
-				String nodeId= getRandomNode();
-				System.out.println("Node Id:"+nodeId);
-				System.out.println("Enter depth");
-				input=in.nextLine();
-				String filter="";
-				mab.get_neighbors(nodeId, filter);
+
+				String filter="3";
+				//mab.get_neighbors(nodeId, filter);
+				mab.getEdges(filter);
 				break;
 			}
 			case 18:{
@@ -375,11 +374,20 @@ public class EmbeddedNeo4j {
 				mab.k_hop_neighbors(nodeId, Integer.parseInt(input));
 				break;
 			}
-			case 19:
-				String filter="";
+			case 19:{
+				String filter="34";
 				mab.select_nodes(filter);
 			}
+			case 20:{
+				String nodeId1= getRandomNode();
+				String nodeId2= getRandomNode();
+				System.out.println("Node 1 is:"+nodeId1);
+				System.out.println("Node 2 is:"+nodeId2);
+				algo.shortestPath1(nodeId1, nodeId2);
+				algo.shortestPath(nodeId1, nodeId2);
+			}
 
+			}
 		}
 
 	}

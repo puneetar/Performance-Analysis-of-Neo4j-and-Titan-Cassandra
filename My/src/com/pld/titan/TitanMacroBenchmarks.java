@@ -1,13 +1,13 @@
 package com.pld.titan;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
-
-import org.apache.commons.lang.time.StopWatch;
 
 import com.thinkaurelius.titan.core.TitanGraph;
 import com.thinkaurelius.titan.core.attribute.Text;
 import com.tinkerpop.blueprints.Compare;
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
@@ -32,45 +32,39 @@ public class TitanMacroBenchmarks {
 	
 	public Iterator<Vertex> getNodesWithFilter(){
 		String filter_value="34";
-		StopWatch st=new StopWatch();
-		st.start();
-		Iterable<Vertex> v1_itr=graph.query().has(TitanBenchmark.NODE_PROPERTY,Text.CONTAINS,filter_value).vertices();
-		st.stop();
-		Iterator<Vertex> v_iterator=v1_itr.iterator();
-		
-		
-		while(v_iterator.hasNext()){
-			Vertex v= v_iterator.next();
-			System.out.println("Node : "+v +"\t nproperty : "+v.getProperty(TitanBenchmark.NODE_PROPERTY));	
-		}
-		TitanBenchmark.printTime(st.toString());
-	
-		
-		return v_iterator;
+		Iterator<Vertex> v1_itr=graph.query().has(TitanBenchmark.NODE_PROPERTY,Text.CONTAINS,filter_value).vertices().iterator();
+		return v1_itr;
 		
 	}
 	
 	
 	public Iterator<Edge> getEdgesWithFilter(){
 		String filter_value="34";
-		StopWatch st=new StopWatch();
-		st.start();
-		Iterable<Edge> e1_itr=graph.query().has(TitanBenchmark.EDGE_PROPERTY,Text.CONTAINS,filter_value).edges();
-		st.stop();
-		Iterator<Edge> e_iterator=e1_itr.iterator();
-		
-		
-		while(e_iterator.hasNext()){
-			Edge e= e_iterator.next();
-			System.out.println("Edge : "+e +"\t eproperty : "+e.getProperty(TitanBenchmark.EDGE_PROPERTY));	
-		}
-		TitanBenchmark.printTime(st.toString());
-	
-		return e_iterator;
+		Iterator<Edge> e1_itr=graph.query().has(TitanBenchmark.EDGE_PROPERTY,Text.CONTAINS,filter_value).edges().iterator();
+		return e1_itr;
 	}
-	
-	
-	public boolean getKHopNeighbours(int k){
+
+	public ArrayList<Vertex> getNeighbours(Vertex v1){
+		ArrayList<Vertex> arls=new ArrayList<Vertex>();
+		Iterator<Edge> edges=v1.getEdges(Direction.BOTH).iterator();
+		while(edges.hasNext()){
+			Edge e=edges.next();
+			arls.add(e.getVertex(Direction.BOTH));
+		}
+		return arls;
+	}
+
+	public boolean getKHopNeighbours(int k,Vertex v1){
+		ArrayList<Vertex> arls=new ArrayList<Vertex>();
+		arls.add(v1);
+		Vertex v=v1;
+		while(k!=0){
+			int size=arls.size();
+			for(int i=0;i<size;i++){
+				arls.addAll(getNeighbours(arls.get(i)));
+			}
+			k--;
+		}
 		return false;
 	}
 }
