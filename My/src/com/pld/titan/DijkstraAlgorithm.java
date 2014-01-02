@@ -42,7 +42,6 @@ public class DijkstraAlgorithm {
 
 	public DijkstraAlgorithm(TitanGraph graph) {
 		this.graph=graph;
-		// create a copy of the array so that we can operate on this array
 		System.out.println("loading all vertices");
 		ArrayList<Vertex> arr_v=new ArrayList<Vertex>();
 		Iterator<Vertex> v1_itr=graph.getVertices().iterator();
@@ -142,14 +141,11 @@ public class DijkstraAlgorithm {
 		}
 	}
 
-	/*
-	 * This method returns the path from the source to the selected target and
-	 * NULL if no path exists
-	 */
+	
 	public LinkedList<Vertex> getPath(Vertex target) {
 		LinkedList<Vertex> path = new LinkedList<Vertex>();
 		Vertex step = target;
-		// check if a path exists
+	
 		if (predecessors.get(step) == null) {
 			return null;
 		}
@@ -158,7 +154,7 @@ public class DijkstraAlgorithm {
 			step = predecessors.get(step);
 			path.add(step);
 		}
-		// Put it into the correct order
+	
 		Collections.reverse(path);
 		return path;
 	}
