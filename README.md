@@ -27,3 +27,15 @@ Set edge between set of nodes (selected by a filter)
 Aggregate functions like count() , sum(), avg(), min() , max()
 Algorithms:
 Shortest path Algorithm
+
+
+CONCLUSION:
+-----------
+In our efforts to develop and analyze graph databases, we learned a great deal about all the systems we've studied. After running our benchmarks and carefully analyzing the results, we can conclude that the performance of Neo4j is better than Titan+ Cassandra due to the following reasons:
+
+● Neo4j runs on the same machine from which queries are being done whereas in titan a connection is being made using socket and connected to the DB via IP address and port no.
+
+● Neo4j replicates the data to different machines. i.e. all the other machines just server as backup machines until there is a node failure.On the other hand Titan+Cassandra distributes the data between different machines and uses hashing algorithm to separate machines and at the time of fetching the data it gets the data from the corresponding machine which holds that data. Moreover it also replicates the data to other machines to prevent data loss from failures
+
+
+
